@@ -4,6 +4,7 @@
 import sys
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
+from window.gallery import Gallery
 
 
 def main():
@@ -12,6 +13,7 @@ def main():
     )
 
     app = QApplication(sys.argv)
+    Gallery.get_instance().show()
     sys.exit(app.exec())
 
 
