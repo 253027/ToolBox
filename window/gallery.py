@@ -1,9 +1,9 @@
 # Copyright (C) 2026 mogaitesheng
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-from qfluentwidgets import FluentWindow
 from .lib_replace import LibReplace
-
+from .home import Home
+from qfluentwidgets import FluentWindow, FluentIcon
 from PySide6.QtWidgets import QWidget
 
 
@@ -12,10 +12,10 @@ class Gallery(FluentWindow):
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent=parent)
-        self.setWindowTitle("Gallery")
+        self.setWindowTitle("ToolBox")
         self.resize(800, 600)
 
-        self.install_component()
+        self.installComponent()
 
     @staticmethod
     def get_instance() -> "Gallery":
@@ -23,5 +23,8 @@ class Gallery(FluentWindow):
             Gallery.INSTANCE = Gallery()
         return Gallery.INSTANCE
 
-    def install_component(self) -> None:
-        self.addSubInterface(LibReplace(), "images/binary.svg", "LibReplace")
+    def installComponent(self) -> None:
+        self.home = Home()
+        self.addSubInterface(self.home, FluentIcon.HOME, "首页")
+        self.libReplace = LibReplace()
+        self.addSubInterface(self.libReplace, "images/binary.svg", "链接库替换")

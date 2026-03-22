@@ -1,9 +1,9 @@
 from PySide6.QtWidgets import QWidget
-from ui.lib_replace_ui import Ui_LibReplace
+from ui.home_ui import Ui_Home
 
 
-class LibReplace(QWidget):
+class Home(QWidget):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
-        self.ui = Ui_LibReplace()
+        self.ui = Ui_Home()
         self.ui.setupUi(self)

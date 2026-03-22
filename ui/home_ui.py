@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'lib_replace.ui'
+## Form generated from reading UI file 'home.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.10.2
 ##
@@ -17,18 +17,18 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QSizePolicy, QWidget)
 
-class Ui_LibReplace(object):
-    def setupUi(self, LibReplace):
-        if not LibReplace.objectName():
-            LibReplace.setObjectName(u"LibReplace")
-        LibReplace.resize(400, 300)
+class Ui_Home(object):
+    def setupUi(self, Home):
+        if not Home.objectName():
+            Home.setObjectName(u"Home")
+        Home.resize(400, 300)
 
-        self.retranslateUi(LibReplace)
+        self.retranslateUi(Home)
 
-        QMetaObject.connectSlotsByName(LibReplace)
+        QMetaObject.connectSlotsByName(Home)
     # setupUi
 
-    def retranslateUi(self, LibReplace):
-        LibReplace.setWindowTitle(QCoreApplication.translate("LibReplace", u"Form", None))
+    def retranslateUi(self, Home):
+        Home.setWindowTitle(QCoreApplication.translate("Home", u"Form", None))
     # retranslateUi
 
