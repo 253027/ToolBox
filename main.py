@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 import sys
+import resource_rc
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 from window.gallery import Gallery

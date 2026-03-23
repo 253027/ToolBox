@@ -24,7 +24,7 @@ class Gallery(FluentWindow):
         return Gallery.INSTANCE
 
     def installComponent(self) -> None:
-        self.home = Home()
+        self.home = Home(self)
         self.addSubInterface(self.home, FluentIcon.HOME, "首页")
-        self.libReplace = LibReplace()
-        self.addSubInterface(self.libReplace, "images/binary.svg", "链接库替换")
+        self.libReplace = LibReplace(self)
+        self.addSubInterface(self.libReplace, ":/images/binary.svg", "链接库替换")
