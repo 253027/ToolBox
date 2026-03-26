@@ -14,11 +14,12 @@ class Gallery(FluentWindow):
         super().__init__(parent=parent)
         self.setWindowTitle("ToolBox")
         self.resize(800, 600)
+        self.setMinimumSize(800, 600)
 
         self.installComponent()
 
     @staticmethod
-    def get_instance() -> "Gallery":
+    def getInstance() -> "Gallery":
         if Gallery.INSTANCE is None:
             Gallery.INSTANCE = Gallery()
         return Gallery.INSTANCE

@@ -1,0 +1,4 @@
+QWidget#LeftSideBarWidget {
+    border-right: 1px solid rgb(229, 232, 238);
+    background-color: rgb(243, 243, 243);
+}

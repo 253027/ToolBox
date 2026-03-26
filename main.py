@@ -14,7 +14,7 @@ def main():
     )
 
     app = QApplication(sys.argv)
-    Gallery.get_instance().show()
+    Gallery.getInstance().show()
     sys.exit(app.exec())
 
 
