@@ -64,7 +64,7 @@ class LibReplace(QWidget):
                 continue
             height += widget.height()
         self.ui.ScrollAreaWidgetContents.setFixedHeight(
-            height + (nums - 1) * self.ui.ScrollAreaWidgetContentsLayout.spacing()
+            height + (nums - 1) * self.ui.ScrollAreaWidgetContentsLayout.spacing() + 6
         )
 
     def onCreateActionTriggered(self) -> None:
