@@ -50,10 +50,27 @@ class LibReplace(QWidget):
         """add content widget to ScrollArea"""
         widget.setParent(self.ui.ScrollArea)
         self.ui.ScrollAreaWidgetContentsLayout.addWidget(widget)
+        self._updateContent()
+
+    def _updateContent(self) -> None:
+        height = 0
+        nums = self.ui.ScrollAreaWidgetContentsLayout.count()
+        for i in range(nums):
+            item = self.ui.ScrollAreaWidgetContentsLayout.itemAt(i)
+            if not item:
+                continue
+            widget = item.widget()
+            if not widget:
+                continue
+            height += widget.height()
+        self.ui.ScrollAreaWidgetContents.setFixedHeight(
+            height + (nums - 1) * self.ui.ScrollAreaWidgetContentsLayout.spacing()
+        )
 
     def onCreateActionTriggered(self) -> None:
         """create action handler"""
         widget = LibReplaceDirectory()
+        widget.setIcon(FluentIcon.FOLDER)
         self._addContentWidget(widget)
 
     def onOpenActionTriggered(self) -> None:

@@ -1,0 +1,11 @@
+QWidget#Content[focused="true"] {
+    border: 1px solid rgb(226, 234, 250);
+    background-color: rgb(248, 250, 252);
+    border-radius: 8px;
+}
+
+QWidget#Content[hover="true"] {
+    border: 1px solid rgb(226, 234, 250);
+    background-color: rgb(238, 240, 243);
+    border-radius: 8px;
+}

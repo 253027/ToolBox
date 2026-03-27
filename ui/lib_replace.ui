@@ -193,6 +193,12 @@
       </item>
       <item>
        <widget class="QFrame" name="ScrollAreaFrame">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="frameShape">
          <enum>QFrame::Shape::NoFrame</enum>
         </property>
@@ -220,6 +226,12 @@
          </property>
          <item>
           <widget class="ScrollArea" name="ScrollArea">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="frameShape">
             <enum>QFrame::Shape::NoFrame</enum>
            </property>
@@ -230,10 +242,10 @@
             <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
            </property>
            <property name="widgetResizable">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="alignment">
-            <set>Qt::AlignmentFlag::AlignCenter</set>
+            <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
            </property>
            <widget class="QWidget" name="ScrollAreaWidgetContents">
             <property name="geometry">
@@ -246,16 +258,16 @@
             </property>
             <layout class="QVBoxLayout" name="ScrollAreaWidgetContentsLayout">
              <property name="spacing">
-              <number>10</number>
+              <number>4</number>
              </property>
              <property name="leftMargin">
-              <number>0</number>
+              <number>10</number>
              </property>
              <property name="topMargin">
               <number>0</number>
              </property>
              <property name="rightMargin">
-              <number>0</number>
+              <number>10</number>
              </property>
              <property name="bottomMargin">
               <number>0</number>
