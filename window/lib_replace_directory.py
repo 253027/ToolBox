@@ -2,8 +2,8 @@ from PySide6.QtWidgets import QVBoxLayout, QWidget
 from ui.lib_replace_directory_ui import Ui_LibReplaceDirectory
 from qfluentwidgets.common.style_sheet import setStyleSheet
 from qfluentwidgets import Action, FluentIcon, FluentIconBase
-from PySide6.QtCore import QDate, QEvent, Qt
-from PySide6.QtGui import QEnterEvent, QFocusEvent, QFont, QIcon
+from PySide6.QtCore import QDate, Qt, QDateTime, QEvent
+from PySide6.QtGui import QFocusEvent, QFont, QIcon, QEnterEvent
 
 
 class LibReplaceDirectory(QWidget):
@@ -35,8 +35,37 @@ class LibReplaceDirectory(QWidget):
     def setTitle(self, title: str) -> None:
         self.ui.Directory.setText(title)
 
-    def setDate(self, date: QDate) -> None:
-        pass
+    def setDate(self, date: QDateTime) -> None:
+        """
+            set date and show relative time
+
+        Args:
+            date: the date to beshow
+        """
+        diff = date.secsTo(QDateTime.currentDateTime())
+
+        if diff < 60:  # not over a minute
+            text = "刚刚更新"
+        elif diff < 3600:  # not over an hour
+            minutes = diff // 60
+            text = f"更新于 {minutes}分钟前"
+        elif diff < 86400:  # not over a day
+            hours = diff // 3600
+            text = f"更新于 {hours}小时前"
+        elif diff < 172800:  # not over 2 days
+            text = "更新于 昨天"
+        elif diff < 604800:  # not over a week
+            days = diff // 86400
+            text = f"更新于 {days}天前"
+        elif diff < 2592000:  # not over a month
+            weeks = diff // 604800
+            text = f"更新于 {weeks}周前"
+        else:
+            text = f"更新于 {date.toString('yyyy-MM-dd')}"
+
+        self.date = date
+        self.ui.Date.setText(text)
+        self.ui.Date.setToolTip(date.toString("yyyy-MM-dd hh:mm:ss"))
 
     def updateStyle(self) -> None:
         self.ui.Content.style().polish(self.ui.Content)

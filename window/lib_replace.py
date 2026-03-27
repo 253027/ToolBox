@@ -1,9 +1,9 @@
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QWidget, QFileDialog
 from ui.lib_replace_ui import Ui_LibReplace
 from .lib_replace_directory import LibReplaceDirectory
 from qfluentwidgets.common.style_sheet import setStyleSheet
 from qfluentwidgets import Action, FluentIcon
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QDate, QDateTime, Qt
 from PySide6.QtGui import QFont, QIcon
 
 
@@ -53,8 +53,8 @@ class LibReplace(QWidget):
         self._updateContent()
 
     def _updateContent(self) -> None:
-        height = 0
         nums = self.ui.ScrollAreaWidgetContentsLayout.count()
+        height = (nums - 1) * self.ui.ScrollAreaWidgetContentsLayout.spacing() + 6
         for i in range(nums):
             item = self.ui.ScrollAreaWidgetContentsLayout.itemAt(i)
             if not item:
@@ -63,16 +63,23 @@ class LibReplace(QWidget):
             if not widget:
                 continue
             height += widget.height()
-        self.ui.ScrollAreaWidgetContents.setFixedHeight(
-            height + (nums - 1) * self.ui.ScrollAreaWidgetContentsLayout.spacing() + 6
-        )
+        self.ui.ScrollAreaWidgetContents.setFixedHeight(height)
 
     def onCreateActionTriggered(self) -> None:
         """create action handler"""
         widget = LibReplaceDirectory()
         widget.setIcon(FluentIcon.FOLDER)
+        widget.setDate(QDateTime.currentDateTime())
         self._addContentWidget(widget)
 
     def onOpenActionTriggered(self) -> None:
-        """open action handler"""
-        pass
+        """open a existing directory"""
+        directory = QFileDialog.getExistingDirectory(
+            self,
+            "选择目录",
+            "",
+            QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.DontResolveSymlinks,
+        )
+
+        if not directory:
+            return
