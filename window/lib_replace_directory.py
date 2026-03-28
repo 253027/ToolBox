@@ -1,18 +1,29 @@
+import weakref
+from typing import ClassVar
+
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 from ui.lib_replace_directory_ui import Ui_LibReplaceDirectory
 from qfluentwidgets.common.style_sheet import setStyleSheet
 from qfluentwidgets import Action, FluentIcon, FluentIconBase
 from PySide6.QtCore import QDate, Qt, QDateTime, QEvent
-from PySide6.QtGui import QFocusEvent, QFont, QIcon, QEnterEvent
+from PySide6.QtGui import QFocusEvent, QFont, QIcon, QEnterEvent, QMouseEvent
 
 
 class LibReplaceDirectory(QWidget):
+
+    record: ClassVar[set[weakref.ref["LibReplaceDirectory"]]] = set()
+
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent=parent)
         self._setupUi()
         self.setWindowFlag(Qt.WindowType.Window)
         self._installRequireSettings()
         self._installStyleSheet()
+        self.focus = False
+        LibReplaceDirectory.record.add(weakref.ref(self))
+
+    def __del__(self) -> None:
+        LibReplaceDirectory.record.discard(weakref.ref(self))
 
     def _setupUi(self) -> None:
         """initial ui components"""
@@ -71,6 +82,8 @@ class LibReplaceDirectory(QWidget):
         self.ui.Content.style().polish(self.ui.Content)
 
     def enterEvent(self, event: QEnterEvent) -> None:
+        if self.focus:
+            return
         self.ui.Content.setProperty("hover", True)
         self.updateStyle()
         super().enterEvent(event)
@@ -80,13 +93,18 @@ class LibReplaceDirectory(QWidget):
         self.updateStyle()
         super().leaveEvent(event)
 
-    def focusInEvent(self, event: QFocusEvent) -> None:
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        self.focus = True
         self.ui.Content.setProperty("focused", True)
         self.ui.Content.setProperty("hover", False)
+        for widgetRef in LibReplaceDirectory.record:
+            widget = widgetRef()
+            if widget and widget != self:
+                widget.clearStyle()
         self.updateStyle()
-        super().focusInEvent(event)
 
-    def focusOutEvent(self, event: QFocusEvent) -> None:
+    def clearStyle(self) -> None:
+        self.focus = False
         self.ui.Content.setProperty("focused", False)
+        self.ui.Content.setProperty("hover", False)
         self.updateStyle()
-        super().focusOutEvent(event)
