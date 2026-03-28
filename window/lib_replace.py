@@ -16,6 +16,7 @@ class LibReplace(QWidget):
         self.setWindowFlag(Qt.WindowType.Window)
         self._installStyleSheet()
         self._installRequireSettings()
+        self._initialContentWidgets()
 
     def _setupUi(self) -> None:
         """initial ui components"""
@@ -76,8 +77,8 @@ class LibReplace(QWidget):
             "",
             QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.DontResolveSymlinks,
         )
-        if directory:
-            self._addProject(Path(directory))
+        if directory and self._addProject(Path(directory)):
+            self._saveToConfig()
 
     def getAllContentWidgets(self) -> list[LibReplaceDirectory]:
         widgetsRecord = []
@@ -92,7 +93,7 @@ class LibReplace(QWidget):
             widgetsRecord.append(widget)
         return widgetsRecord
 
-    def _addProject(self, path: Path) -> bool:
+    def _addProject(self, path: Path, createByUser: bool = True) -> bool:
         """add a project to the list"""
         for widget in self.getAllContentWidgets():
             if Path(widget.getName()) == path:
@@ -106,12 +107,13 @@ class LibReplace(QWidget):
         widget = LibReplaceDirectory()
         widget.setIcon(FluentIcon.FOLDER)
         widget.setDate(
-            QDateTime.fromString(content["create_time"], "yyyy-MM-dd hh:mm:ss")
+            QDateTime.fromString(content["create_time"], "yyyy-MM-dd HH:mm:ss")
         )
         widget.setTitle(configPath.parent.name)
         widget.setName(str(path))
         self._addContentWidget(widget)
-        widget.setStyle()
+        if createByUser:
+            widget.setStyle()
         return True
 
     def _verify(self, path: Path) -> dict | None:
@@ -131,3 +133,32 @@ class LibReplace(QWidget):
                 return config
         except Exception:
             return None
+
+    def _saveToConfig(self) -> None:
+        """save current project paths to config file"""
+        import os
+
+        configPath = Path("config.json.bak").absolute()
+        with open(configPath, "w", encoding="utf-8") as file:
+            config = {"projects": []}
+            for widget in self.getAllContentWidgets():
+                config["projects"].append(widget.getName())
+            json.dump(config, file, indent=4, ensure_ascii=False)
+        os.replace(configPath, Path("config.json").absolute())
+
+    def _initialContentWidgets(self) -> None:
+        """initialize content widgets and load projects from config file"""
+        configPath = Path("config.json").absolute()
+
+        try:
+            with open(configPath, "r", encoding="utf-8") as file:
+                config = json.load(file)
+                for project in config["projects"]:
+                    self._addProject(Path(project), False)
+            self._saveToConfig()  # update the config file
+        except FileNotFoundError:
+            config = {"projects": []}
+            with open(configPath, "w", encoding="utf-8") as file:
+                json.dump(config, file, indent=4)
+        except Exception:
+            raise RuntimeError("read system config failed")
