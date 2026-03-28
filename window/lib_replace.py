@@ -5,6 +5,8 @@ from qfluentwidgets.common.style_sheet import setStyleSheet
 from qfluentwidgets import Action, FluentIcon
 from PySide6.QtCore import QDate, QDateTime, Qt
 from PySide6.QtGui import QFont, QIcon
+from pathlib import Path
+import json
 
 
 class LibReplace(QWidget):
@@ -80,6 +82,39 @@ class LibReplace(QWidget):
             "",
             QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.DontResolveSymlinks,
         )
+        if directory:
+            self._addProject(Path(directory))
 
-        if not directory:
+    def _addProject(self, path: Path) -> None:
+        """add a project to the list"""
+        configPath = path / "config.json"
+        content = self._verify(configPath)
+        if not content:
             return
+
+        widget = LibReplaceDirectory()
+        widget.setIcon(FluentIcon.FOLDER)
+        widget.setDate(
+            QDateTime.fromString(content["create_time"], "yyyy-MM-dd hh:mm:ss")
+        )
+        widget.setTitle(configPath.parent.name)
+        self._addContentWidget(widget)
+        widget.setStyle()
+
+    def _verify(self, path: Path) -> dict | None:
+        """verify the config and return config dict if valid"""
+        if not path.exists() or not path.is_file():
+            return None
+
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                config = json.load(f)
+                if "create_time" not in config:
+                    return None
+
+                if "file" not in config or not isinstance(config["file"], list):
+                    return None
+
+                return config
+        except Exception:
+            return None
