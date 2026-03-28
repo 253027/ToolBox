@@ -57,13 +57,7 @@ class LibReplace(QWidget):
     def _updateContent(self) -> None:
         nums = self.ui.ScrollAreaWidgetContentsLayout.count()
         height = (nums - 1) * self.ui.ScrollAreaWidgetContentsLayout.spacing() + 6
-        for i in range(nums):
-            item = self.ui.ScrollAreaWidgetContentsLayout.itemAt(i)
-            if not item:
-                continue
-            widget = item.widget()
-            if not widget:
-                continue
+        for widget in self.getAllContentWidgets():
             height += widget.height()
         self.ui.ScrollAreaWidgetContents.setFixedHeight(height)
 
@@ -85,12 +79,29 @@ class LibReplace(QWidget):
         if directory:
             self._addProject(Path(directory))
 
-    def _addProject(self, path: Path) -> None:
+    def getAllContentWidgets(self) -> list[LibReplaceDirectory]:
+        widgetsRecord = []
+        nums = self.ui.ScrollAreaWidgetContentsLayout.count()
+        for i in range(nums):
+            item = self.ui.ScrollAreaWidgetContentsLayout.itemAt(i)
+            if not item:
+                continue
+            widget = item.widget()
+            if not widget or not isinstance(widget, LibReplaceDirectory):
+                continue
+            widgetsRecord.append(widget)
+        return widgetsRecord
+
+    def _addProject(self, path: Path) -> bool:
         """add a project to the list"""
+        for widget in self.getAllContentWidgets():
+            if Path(widget.getName()) == path:
+                return False
+
         configPath = path / "config.json"
         content = self._verify(configPath)
         if not content:
-            return
+            return False
 
         widget = LibReplaceDirectory()
         widget.setIcon(FluentIcon.FOLDER)
@@ -98,8 +109,10 @@ class LibReplace(QWidget):
             QDateTime.fromString(content["create_time"], "yyyy-MM-dd hh:mm:ss")
         )
         widget.setTitle(configPath.parent.name)
+        widget.setName(str(path))
         self._addContentWidget(widget)
         widget.setStyle()
+        return True
 
     def _verify(self, path: Path) -> dict | None:
         """verify the config and return config dict if valid"""

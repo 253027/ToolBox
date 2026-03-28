@@ -20,6 +20,7 @@ class LibReplaceDirectory(QWidget):
         self._installRequireSettings()
         self._installStyleSheet()
         self.focus = False
+        self.name = ""
         LibReplaceDirectory.record.add(weakref.ref(self))
 
     def __del__(self) -> None:
@@ -45,6 +46,15 @@ class LibReplaceDirectory(QWidget):
 
     def setTitle(self, title: str) -> None:
         self.ui.Directory.setText(title)
+
+    def getTitle(self) -> str:
+        return self.ui.Directory.text()
+
+    def setName(self, name: str) -> None:
+        self.name = name
+
+    def getName(self) -> str:
+        return self.name
 
     def setDate(self, date: QDateTime) -> None:
         """
