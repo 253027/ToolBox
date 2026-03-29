@@ -1,0 +1,16 @@
+QFrame#ContentArea {
+    border-top: 1px solid rgb(212, 217, 223);
+}
+
+QFrame#RootProjectNameLine {
+    border-top: 1px solid rgb(170, 172, 181);
+}
+
+QFrame#ProjectRemoteLine {
+    border-top: 1px solid rgb(170, 172, 181);
+}
+
+QFrame#SshContent {
+    border: 1px solid rgb(170, 172, 181);
+    border-radius: 8px;
+}

@@ -64,10 +64,15 @@ class LibReplace(QWidget):
 
     def onCreateActionTriggered(self) -> None:
         """create action handler"""
-        widget = LibReplaceDirectory()
-        widget.setIcon(FluentIcon.FOLDER)
-        widget.setDate(QDateTime.currentDateTime())
-        self._addContentWidget(widget)
+        from .lib_replace_project_creater import ProjectCreater
+
+        window = ProjectCreater(self)
+        window.show()
+
+        # widget = LibReplaceDirectory()
+        # widget.setIcon(FluentIcon.FOLDER)
+        # widget.setDate(QDateTime.currentDateTime())
+        # self._addContentWidget(widget)
 
     def onOpenActionTriggered(self) -> None:
         """open a existing directory"""

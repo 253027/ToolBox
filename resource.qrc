@@ -4,5 +4,6 @@
     <file>images/binary.svg</file>
     <file>style/lib_replace.qss</file>
     <file>style/lib_replace_directory.qss</file>
+    <file>style/lib_replace_project_creater.qss</file>
   </qresource>
 </RCC>
