@@ -1,6 +1,13 @@
-from PySide6.QtWidgets import QButtonGroup, QDialog, QFileDialog, QLabel, QWidget
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont, QShowEvent
+from PySide6.QtWidgets import (
+    QButtonGroup,
+    QDialog,
+    QFileDialog,
+    QLabel,
+    QLineEdit,
+    QWidget,
+)
+from PySide6.QtCore import Qt, QRegularExpression
+from PySide6.QtGui import QFont, QShowEvent, QRegularExpressionValidator
 from ui.lib_replace_project_creater_ui import Ui_ProjectCreater
 from qframelesswindow import FramelessDialog, TitleBar
 from qfluentwidgets.common.style_sheet import setStyleSheet
@@ -52,6 +59,7 @@ class ProjectCreater(FramelessDialog):
         self.ui.SshButton.clicked.connect(self.onSshButtonClicked)
         self.ui.CloseButton.clicked.connect(lambda: self.close())
         self.ui.AcceptButton.clicked.connect(self.onAcceptButtonClicked)
+        self._setupInputValidators()
 
     def _installStyleSheet(
         self, path: str = ":/style/lib_replace_project_creater.qss"
@@ -59,6 +67,21 @@ class ProjectCreater(FramelessDialog):
         """style sheet installer"""
         setStyleSheet(self.ui.ContentArea, path)
         setStyleSheet(self.ui.SshArea, path)
+
+    def _setupInputValidators(self) -> None:
+        """Set up validators for input fields"""
+        # IPv4 address validator (dotted decimal format, each octet 0-255)
+        ipPattern = QRegularExpression(
+            r"^((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}"
+            r"(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])$"
+        )
+        self.ui.HostInput.setValidator(QRegularExpressionValidator(ipPattern, self))
+
+        # Port number validator (range 1-65535)
+        portPattern = QRegularExpression(
+            r"^([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$"
+        )
+        self.ui.PortInput.setValidator(QRegularExpressionValidator(portPattern, self))
 
     def onLocalButtonClicked(self) -> None:
         if not self.ui.SshArea.isVisible():

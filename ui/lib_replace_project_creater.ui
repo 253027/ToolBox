@@ -792,6 +792,9 @@
                 <family>Segoe UI</family>
                </font>
               </property>
+              <property name="echoMode">
+               <enum>QLineEdit::EchoMode::Password</enum>
+              </property>
              </widget>
             </item>
            </layout>

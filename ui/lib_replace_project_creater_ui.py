@@ -333,6 +333,7 @@ class Ui_ProjectCreater(object):
         self.PasswordInput.setMinimumSize(QSize(0, 28))
         self.PasswordInput.setMaximumSize(QSize(16777215, 28))
         self.PasswordInput.setFont(font2)
+        self.PasswordInput.setEchoMode(QLineEdit.EchoMode.Password)
 
         self.horizontalLayout_4.addWidget(self.PasswordInput)
 
