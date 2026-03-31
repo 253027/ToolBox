@@ -26,7 +26,7 @@ class Ui_ProjectCreater(object):
     def setupUi(self, ProjectCreater):
         if not ProjectCreater.objectName():
             ProjectCreater.setObjectName(u"ProjectCreater")
-        ProjectCreater.resize(403, 350)
+        ProjectCreater.resize(403, 385)
         self.ProjectCreaterLayout = QVBoxLayout(ProjectCreater)
         self.ProjectCreaterLayout.setSpacing(0)
         self.ProjectCreaterLayout.setObjectName(u"ProjectCreaterLayout")
@@ -223,22 +223,24 @@ class Ui_ProjectCreater(object):
 
         self.SshArea = QFrame(ProjectCreater)
         self.SshArea.setObjectName(u"SshArea")
-        self.SshArea.setMinimumSize(QSize(0, 100))
-        self.SshArea.setMaximumSize(QSize(16777215, 100))
+        self.SshArea.setMinimumSize(QSize(0, 135))
+        self.SshArea.setMaximumSize(QSize(16777215, 135))
         self.SshArea.setFrameShape(QFrame.Shape.NoFrame)
         self.SshArea.setFrameShadow(QFrame.Shadow.Raised)
-        self.SshAreaLayout = QGridLayout(self.SshArea)
-        self.SshAreaLayout.setSpacing(0)
-        self.SshAreaLayout.setObjectName(u"SshAreaLayout")
-        self.SshAreaLayout.setContentsMargins(15, 0, 15, 0)
+        self.gridLayout = QGridLayout(self.SshArea)
+        self.gridLayout.setSpacing(0)
+        self.gridLayout.setObjectName(u"gridLayout")
+        self.gridLayout.setContentsMargins(20, 2, 20, 0)
         self.SshContent = QFrame(self.SshArea)
         self.SshContent.setObjectName(u"SshContent")
+        self.SshContent.setMinimumSize(QSize(0, 100))
+        self.SshContent.setMaximumSize(QSize(16777215, 100))
         self.SshContent.setFrameShape(QFrame.Shape.NoFrame)
         self.SshContent.setFrameShadow(QFrame.Shadow.Raised)
         self.SshContentLayout = QGridLayout(self.SshContent)
         self.SshContentLayout.setSpacing(0)
         self.SshContentLayout.setObjectName(u"SshContentLayout")
-        self.SshContentLayout.setContentsMargins(4, 6, 4, 0)
+        self.SshContentLayout.setContentsMargins(8, 6, 8, 6)
         self.HostFrame = QFrame(self.SshContent)
         self.HostFrame.setObjectName(u"HostFrame")
         self.HostFrame.setFrameShape(QFrame.Shape.NoFrame)
@@ -342,7 +344,25 @@ class Ui_ProjectCreater(object):
 
         self.SshContentLayout.setColumnStretch(0, 3)
 
-        self.SshAreaLayout.addWidget(self.SshContent, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.SshContent, 0, 0, 1, 1)
+
+        self.SshVerify = QFrame(self.SshArea)
+        self.SshVerify.setObjectName(u"SshVerify")
+        self.SshVerify.setMinimumSize(QSize(0, 35))
+        self.SshVerify.setMaximumSize(QSize(16777215, 35))
+        self.SshVerify.setFrameShape(QFrame.Shape.NoFrame)
+        self.SshVerify.setFrameShadow(QFrame.Shadow.Raised)
+        self.SshVerifyLayout = QHBoxLayout(self.SshVerify)
+        self.SshVerifyLayout.setSpacing(0)
+        self.SshVerifyLayout.setObjectName(u"SshVerifyLayout")
+        self.SshVerifyLayout.setContentsMargins(0, 6, 0, 0)
+        self.VerifyButton = PushButton(self.SshVerify)
+        self.VerifyButton.setObjectName(u"VerifyButton")
+
+        self.SshVerifyLayout.addWidget(self.VerifyButton)
+
+
+        self.gridLayout.addWidget(self.SshVerify, 1, 0, 1, 1)
 
 
         self.ProjectCreaterLayout.addWidget(self.SshArea)
@@ -393,6 +413,7 @@ class Ui_ProjectCreater(object):
         self.PortLabel.setText(QCoreApplication.translate("ProjectCreater", u"\u7aef\u53e3", None))
         self.UserNameLabel.setText(QCoreApplication.translate("ProjectCreater", u"\u7528\u6237\u540d", None))
         self.PasswordLabel.setText(QCoreApplication.translate("ProjectCreater", u"\u5bc6\u7801", None))
+        self.VerifyButton.setText(QCoreApplication.translate("ProjectCreater", u"\u9a8c\u8bc1", None))
         self.AcceptButton.setText(QCoreApplication.translate("ProjectCreater", u"\u786e\u8ba4", None))
         self.CloseButton.setText(QCoreApplication.translate("ProjectCreater", u"\u53d6\u6d88", None))
     # retranslateUi

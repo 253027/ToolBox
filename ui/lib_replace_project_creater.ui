@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>403</width>
-    <height>350</height>
+    <height>385</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -502,13 +502,13 @@
      <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>100</height>
+       <height>135</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>100</height>
+       <height>135</height>
       </size>
      </property>
      <property name="frameShape">
@@ -517,15 +517,15 @@
      <property name="frameShadow">
       <enum>QFrame::Shadow::Raised</enum>
      </property>
-     <layout class="QGridLayout" name="SshAreaLayout">
+     <layout class="QGridLayout" name="gridLayout">
       <property name="leftMargin">
-       <number>15</number>
+       <number>20</number>
       </property>
       <property name="topMargin">
-       <number>0</number>
+       <number>2</number>
       </property>
       <property name="rightMargin">
-       <number>15</number>
+       <number>20</number>
       </property>
       <property name="bottomMargin">
        <number>0</number>
@@ -535,6 +535,18 @@
       </property>
       <item row="0" column="0">
        <widget class="QFrame" name="SshContent">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>100</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>100</height>
+         </size>
+        </property>
         <property name="frameShape">
          <enum>QFrame::Shape::NoFrame</enum>
         </property>
@@ -543,16 +555,16 @@
         </property>
         <layout class="QGridLayout" name="SshContentLayout" columnstretch="3,0">
          <property name="leftMargin">
-          <number>4</number>
+          <number>8</number>
          </property>
          <property name="topMargin">
           <number>6</number>
          </property>
          <property name="rightMargin">
-          <number>4</number>
+          <number>8</number>
          </property>
          <property name="bottomMargin">
-          <number>0</number>
+          <number>6</number>
          </property>
          <property name="spacing">
           <number>0</number>
@@ -798,6 +810,52 @@
              </widget>
             </item>
            </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QFrame" name="SshVerify">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>35</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>35</height>
+         </size>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::Shape::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Shadow::Raised</enum>
+        </property>
+        <layout class="QHBoxLayout" name="SshVerifyLayout">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>6</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="PushButton" name="VerifyButton">
+           <property name="text">
+            <string>验证</string>
+           </property>
           </widget>
          </item>
         </layout>

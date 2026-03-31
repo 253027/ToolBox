@@ -37,7 +37,7 @@ class ProjectCreater(FramelessDialog):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         self._setupUi()
-        self.setFixedSize(400, 350)
+        self.setFixedSize(400, 385)
         self._installStyleSheet()
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         self.setResizeEnabled(False)
