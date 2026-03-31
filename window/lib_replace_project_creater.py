@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QWidget,
 )
-from PySide6.QtCore import Qt, QRegularExpression
+from PySide6.QtCore import Qt, QRegularExpression, Signal
 from PySide6.QtGui import QFont, QShowEvent, QRegularExpressionValidator
 from ui.lib_replace_project_creater_ui import Ui_ProjectCreater
 from qframelesswindow import FramelessDialog, TitleBar
@@ -31,6 +31,9 @@ class ProjectTitleBar(TitleBar):
 
 
 class ProjectCreater(FramelessDialog):
+    # root,project name,remote path, host, port, username, password
+    input = Signal(str, str, str, str, str, str, str, str)
+
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         self._setupUi()
@@ -107,6 +110,16 @@ class ProjectCreater(FramelessDialog):
         self.ui.RootPath.setText(directory)
 
     def onAcceptButtonClicked(self) -> None:
+        self.input.emit(
+            self.ui.RootPath.text(),
+            self.ui.ProjectNameInput.text(),
+            self.ui.RemoteInput.text(),
+            self.ui.HostInput.text(),
+            self.ui.PortInput.text(),
+            self.ui.UserNameInput.text(),
+            self.ui.PasswordInput.text(),
+            "ssh" if self.buttonGroup.checkedButton() == self.ui.SshButton else "local",
+        )
         self.close()
 
     def showEvent(self, event: QShowEvent) -> None:

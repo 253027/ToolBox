@@ -66,13 +66,51 @@ class LibReplace(QWidget):
         """create action handler"""
         from .lib_replace_project_creater import ProjectCreater
 
-        window = ProjectCreater(self)
-        window.show()
+        self.creater = ProjectCreater(self)
+        self.creater.input.connect(self.onProjectInput)
+        self.creater.show()
 
-        # widget = LibReplaceDirectory()
-        # widget.setIcon(FluentIcon.FOLDER)
-        # widget.setDate(QDateTime.currentDateTime())
-        # self._addContentWidget(widget)
+    def onProjectInput(
+        self,
+        root: str,
+        name: str,
+        remote: str,
+        host: str,
+        port: str,
+        username: str,
+        password: str,
+        type: str,
+    ) -> None:
+        """project input handler"""
+        self.creater = None  # we need to clear the creater
+
+        # Create project directory path
+        projectPath = Path(root) / name
+        projectPath.mkdir(parents=True, exist_ok=True)
+
+        # Prepare config data with timestamp
+        configData = {
+            "type": type,
+            "create_time": QDateTime()
+            .currentDateTime()
+            .toString("yyyy-MM-dd HH:mm:ss"),
+            "file": [],
+            "remote": remote,
+            "host": host,
+            "port": port,
+            "username": username,
+            "password": password,
+        }
+
+        # Write config to config.json file in project directory
+        configPath = projectPath / "config.json"
+        with open(configPath, "w", encoding="utf-8") as file:
+            json.dump(configData, file, indent=4, ensure_ascii=True)
+
+        widget = self._addProject(projectPath, configData)
+        if widget:
+            widget.setStyle()
+            self._saveToConfig()
 
     def onOpenActionTriggered(self) -> None:
         """open a existing directory"""
@@ -82,7 +120,12 @@ class LibReplace(QWidget):
             "",
             QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.DontResolveSymlinks,
         )
-        if directory and self._addProject(Path(directory)):
+        if not directory:
+            return
+        config = self.parseConfig(Path(directory) / "config.json")
+        widget = self._addProject(Path(directory), config)
+        if widget:
+            widget.setStyle()
             self._saveToConfig()
 
     def getAllContentWidgets(self) -> list[LibReplaceDirectory]:
@@ -98,16 +141,19 @@ class LibReplace(QWidget):
             widgetsRecord.append(widget)
         return widgetsRecord
 
-    def _addProject(self, path: Path, createByUser: bool = True) -> bool:
-        """add a project to the list"""
+    def _addProject(self, path: Path, config: dict) -> LibReplaceDirectory | None:
+        """add a project to the list, only verify the project don't create"""
+        if len(config) == 0:
+            return None
+
         for widget in self.getAllContentWidgets():
             if Path(widget.getName()) == path:
-                return False
+                return None
 
         configPath = path / "config.json"
         content = self._verify(configPath)
         if not content:
-            return False
+            return None
 
         widget = LibReplaceDirectory()
         widget.setIcon(FluentIcon.FOLDER)
@@ -116,10 +162,9 @@ class LibReplace(QWidget):
         )
         widget.setTitle(configPath.parent.name)
         widget.setName(str(path))
+        widget.setConfig(config)
         self._addContentWidget(widget)
-        if createByUser:
-            widget.setStyle()
-        return True
+        return widget
 
     def _verify(self, path: Path) -> dict | None:
         """verify the config and return config dict if valid"""
@@ -133,6 +178,9 @@ class LibReplace(QWidget):
                     return None
 
                 if "file" not in config or not isinstance(config["file"], list):
+                    return None
+
+                if "type" not in config or config["type"] not in ["local", "ssh"]:
                     return None
 
                 return config
@@ -159,7 +207,8 @@ class LibReplace(QWidget):
             with open(configPath, "r", encoding="utf-8") as file:
                 config = json.load(file)
                 for project in config["projects"]:
-                    self._addProject(Path(project), False)
+                    path = Path(project)
+                    self._addProject(path, self.parseConfig(path / "config.json"))
             self._saveToConfig()  # update the config file
         except FileNotFoundError:
             config = {"projects": []}
@@ -167,3 +216,21 @@ class LibReplace(QWidget):
                 json.dump(config, file, indent=4)
         except Exception:
             raise RuntimeError("read system config failed")
+
+    def parseConfig(self, path: Path) -> dict:
+        """parse config file, the path must be end with 'config.json'"""
+        try:
+            with open(path, "r", encoding="utf-8") as file:
+                config = json.load(file)
+                return {
+                    "type": config["type"],
+                    "create_time": config["create_time"],
+                    "file": config["file"],
+                    "remote": config["remote"],
+                    "host": config["host"],
+                    "port": config["port"],
+                    "username": config["username"],
+                    "password": config["password"],
+                }
+        except Exception:
+            return {}

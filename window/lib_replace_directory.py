@@ -121,3 +121,6 @@ class LibReplaceDirectory(QWidget):
             if widget and widget != self:
                 widget.clearStyle()
         self.updateStyle()
+
+    def setConfig(self, config: dict) -> None:
+        self.config = config
