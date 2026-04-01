@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (QApplication, QDialog, QFrame, QGridLayout,
     QHBoxLayout, QLabel, QLineEdit, QRadioButton,
     QSizePolicy, QSpacerItem, QVBoxLayout, QWidget)
 
-from qfluentwidgets import (LineEdit, PrimaryPushButton , PushButton)
+from qfluentwidgets import (LineEdit, PrimaryPushButton, PrimaryPushButton , PushButton)
 import resource_rc
 
 class Ui_ProjectCreater(object):
@@ -330,7 +330,7 @@ class Ui_ProjectCreater(object):
 
         self.horizontalLayout_4.addWidget(self.PasswordLabel)
 
-        self.PasswordInput = QLineEdit(self.PasswordFrame)
+        self.PasswordInput = LineEdit(self.PasswordFrame)
         self.PasswordInput.setObjectName(u"PasswordInput")
         self.PasswordInput.setMinimumSize(QSize(0, 28))
         self.PasswordInput.setMaximumSize(QSize(16777215, 28))
@@ -356,8 +356,9 @@ class Ui_ProjectCreater(object):
         self.SshVerifyLayout.setSpacing(0)
         self.SshVerifyLayout.setObjectName(u"SshVerifyLayout")
         self.SshVerifyLayout.setContentsMargins(0, 6, 0, 0)
-        self.VerifyButton = PushButton(self.SshVerify)
+        self.VerifyButton = PrimaryPushButton(self.SshVerify)
         self.VerifyButton.setObjectName(u"VerifyButton")
+        self.VerifyButton.setFont(font2)
 
         self.SshVerifyLayout.addWidget(self.VerifyButton)
 
@@ -382,6 +383,7 @@ class Ui_ProjectCreater(object):
         self.AcceptButton.setObjectName(u"AcceptButton")
         self.AcceptButton.setMinimumSize(QSize(0, 35))
         self.AcceptButton.setMaximumSize(QSize(16777215, 35))
+        self.AcceptButton.setFont(font2)
 
         self.horizontalLayout.addWidget(self.AcceptButton)
 
@@ -389,6 +391,7 @@ class Ui_ProjectCreater(object):
         self.CloseButton.setObjectName(u"CloseButton")
         self.CloseButton.setMinimumSize(QSize(0, 35))
         self.CloseButton.setMaximumSize(QSize(16777215, 35))
+        self.CloseButton.setFont(font2)
 
         self.horizontalLayout.addWidget(self.CloseButton)
 

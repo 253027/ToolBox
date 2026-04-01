@@ -786,7 +786,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="PasswordInput">
+             <widget class="LineEdit" name="PasswordInput">
               <property name="minimumSize">
                <size>
                 <width>0</width>
@@ -852,7 +852,12 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="PushButton" name="VerifyButton">
+          <widget class="PrimaryPushButton" name="VerifyButton">
+           <property name="font">
+            <font>
+             <family>Segoe UI</family>
+            </font>
+           </property>
            <property name="text">
             <string>验证</string>
            </property>
@@ -917,6 +922,11 @@
           <height>35</height>
          </size>
         </property>
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+         </font>
+        </property>
         <property name="text">
          <string>确认</string>
         </property>
@@ -935,6 +945,11 @@
           <width>16777215</width>
           <height>35</height>
          </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Segoe UI</family>
+         </font>
         </property>
         <property name="text">
          <string>取消</string>
@@ -959,6 +974,11 @@
   </customwidget>
   <customwidget>
    <class>PushButton</class>
+   <extends>QPushButton</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>PrimaryPushButton</class>
    <extends>QPushButton</extends>
    <header>qfluentwidgets</header>
   </customwidget>
