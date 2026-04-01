@@ -62,7 +62,16 @@ class ProjectCreater(FramelessDialog):
         self.ui.SshButton.clicked.connect(self.onSshButtonClicked)
         self.ui.CloseButton.clicked.connect(lambda: self.close())
         self.ui.AcceptButton.clicked.connect(self.onAcceptButtonClicked)
+        self.ui.RootPath.textEdited.connect(lambda: self.updateState())
+        self.ui.ProjectNameInput.textEdited.connect(lambda: self.updateState())
+        self.ui.RemoteInput.textEdited.connect(lambda: self.updateState())
+        self.ui.HostInput.textEdited.connect(lambda: self.updateState())
+        self.ui.PortInput.textEdited.connect(lambda: self.updateState())
+        self.ui.UserNameInput.textEdited.connect(lambda: self.updateState())
+        self.ui.PasswordInput.textEdited.connect(lambda: self.updateState())
+        self.buttonGroup.buttonClicked.connect(lambda: self.updateState())
         self._setupInputValidators()
+        self.updateState()
 
     def _installStyleSheet(
         self, path: str = ":/style/lib_replace_project_creater.qss"
@@ -126,3 +135,27 @@ class ProjectCreater(FramelessDialog):
         if not self.buttonGroup.checkedButton():
             self.ui.LocalButton.click()
         return super().showEvent(event)
+
+    def updateState(self) -> None:
+        from pathlib import Path
+
+        if (
+            Path(self.ui.RootPath.text()).exists()
+            and self.ui.ProjectNameInput.text()
+            and self.ui.RemoteInput.text()
+        ):
+            self.ui.AcceptButton.setEnabled(True)
+        else:
+            self.ui.AcceptButton.setEnabled(False)
+            return
+
+        if self.buttonGroup.checkedButton() == self.ui.SshButton:
+            if (
+                self.ui.HostInput.text()
+                and self.ui.PortInput.text()
+                and self.ui.UserNameInput.text()
+                and self.ui.PasswordInput.text()
+            ):
+                self.ui.AcceptButton.setEnabled(True)
+            else:
+                self.ui.AcceptButton.setEnabled(False)
