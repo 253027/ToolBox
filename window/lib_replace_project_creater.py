@@ -70,6 +70,7 @@ class ProjectCreater(FramelessDialog):
         self.ui.UserNameInput.textEdited.connect(lambda: self.updateState())
         self.ui.PasswordInput.textEdited.connect(lambda: self.updateState())
         self.buttonGroup.buttonClicked.connect(lambda: self.updateState())
+        self.ui.VerifyButton.clicked.connect(self.onVerifyButtonClicked)
         self._setupInputValidators()
         self.updateState()
 
@@ -139,16 +140,6 @@ class ProjectCreater(FramelessDialog):
     def updateState(self) -> None:
         from pathlib import Path
 
-        if (
-            Path(self.ui.RootPath.text()).exists()
-            and self.ui.ProjectNameInput.text()
-            and self.ui.RemoteInput.text()
-        ):
-            self.ui.AcceptButton.setEnabled(True)
-        else:
-            self.ui.AcceptButton.setEnabled(False)
-            return
-
         if self.buttonGroup.checkedButton() == self.ui.SshButton:
             if (
                 self.ui.HostInput.text()
@@ -157,5 +148,19 @@ class ProjectCreater(FramelessDialog):
                 and self.ui.PasswordInput.text()
             ):
                 self.ui.AcceptButton.setEnabled(True)
+                self.ui.VerifyButton.setEnabled(True)
             else:
                 self.ui.AcceptButton.setEnabled(False)
+                self.ui.VerifyButton.setEnabled(False)
+
+        if (
+            Path(self.ui.RootPath.text()).exists()
+            and self.ui.ProjectNameInput.text()
+            and self.ui.RemoteInput.text()
+        ):
+            self.ui.AcceptButton.setEnabled(True)
+        else:
+            self.ui.AcceptButton.setEnabled(False)
+
+    def onVerifyButtonClicked(self) -> None:
+        pass

@@ -66,9 +66,9 @@ class LibReplace(QWidget):
         """create action handler"""
         from .lib_replace_project_creater import ProjectCreater
 
-        self.creater = ProjectCreater(self)
-        self.creater.input.connect(self.onProjectInput)
-        self.creater.show()
+        creater = ProjectCreater(self)
+        creater.input.connect(self.onProjectInput)
+        creater.show()
 
     def onProjectInput(
         self,
@@ -82,7 +82,6 @@ class LibReplace(QWidget):
         type: str,
     ) -> None:
         """project input handler"""
-        self.creater = None  # we need to clear the creater
 
         # Create project directory path
         projectPath = Path(root) / name
