@@ -26,6 +26,7 @@ class Ui_ProjectCreater(object):
     def setupUi(self, ProjectCreater):
         if not ProjectCreater.objectName():
             ProjectCreater.setObjectName(u"ProjectCreater")
+        ProjectCreater.setWindowModality(Qt.WindowModality.WindowModal)
         ProjectCreater.resize(403, 385)
         self.ProjectCreaterLayout = QVBoxLayout(ProjectCreater)
         self.ProjectCreaterLayout.setSpacing(0)
