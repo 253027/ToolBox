@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QWidget,
 )
-from PySide6.QtCore import Qt, QRegularExpression, Signal
+from PySide6.QtCore import QTimer, Qt, QRegularExpression, Signal, Slot
 from PySide6.QtGui import QFont, QShowEvent, QRegularExpressionValidator
 from ui.lib_replace_project_creater_ui import Ui_ProjectCreater
 from qframelesswindow import FramelessDialog, TitleBar
@@ -163,4 +163,49 @@ class ProjectCreater(FramelessDialog):
             self.ui.AcceptButton.setEnabled(False)
 
     def onVerifyButtonClicked(self) -> None:
-        pass
+        """Verify SSH connection using thread pool"""
+        from utils.ssh_worker import SSHTask
+
+        self.task = SSHTask(
+            self.ui.HostInput.text(),
+            int(self.ui.PortInput.text()),
+            self.ui.UserNameInput.text(),
+            self.ui.PasswordInput.text(),
+        )
+
+        self.task.connect()
+        self.task.finished.connect(self.onVerifySuccess)
+        self.task.error.connect(self.onVerifyError)
+        self.disableAllButtons()
+
+    def disableAllButtons(self):
+        """Disable all buttons"""
+        self.ui.AcceptButton.setEnabled(False)
+        self.ui.VerifyButton.setEnabled(False)
+        self.ui.CloseButton.setEnabled(False)
+        self.titleBar.closeBtn.setEnabled(False)
+        self.ui.LocalButton.setEnabled(False)
+        self.ui.SshButton.setEnabled(False)
+
+    def enableAllButtons(self):
+        """Enable all buttons"""
+        self.ui.AcceptButton.setEnabled(True)
+        self.ui.VerifyButton.setEnabled(True)
+        self.ui.CloseButton.setEnabled(True)
+        self.titleBar.closeBtn.setEnabled(True)
+        self.ui.LocalButton.setEnabled(True)
+        self.ui.SshButton.setEnabled(True)
+
+    def onVerifySuccess(self, result: bool):
+        """Handle successful SSH connection"""
+        if self.task:
+            del self.task
+            self.task = None
+        self.enableAllButtons()
+
+    def onVerifyError(self, error_msg: str):
+        """Handle SSH connection error"""
+        if self.task:
+            del self.task
+            self.task = None
+        self.enableAllButtons()
