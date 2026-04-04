@@ -104,7 +104,7 @@ class LibReplaceDirectory(QWidget):
         super().leaveEvent(event)
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
-        self.setStyle()
+        self.installStyle()
 
     def clearStyle(self) -> None:
         self.focus = False
@@ -112,7 +112,7 @@ class LibReplaceDirectory(QWidget):
         self.ui.Content.setProperty("hover", False)
         self.updateStyle()
 
-    def setStyle(self) -> None:
+    def installStyle(self) -> None:
         self.focus = True
         self.ui.Content.setProperty("focused", True)
         self.ui.Content.setProperty("hover", False)

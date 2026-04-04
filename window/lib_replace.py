@@ -111,7 +111,7 @@ class LibReplace(QWidget):
 
         widget = self._addProject(projectPath, configData)
         if widget:
-            widget.setStyle()
+            widget.installStyle()
             self._saveToConfig()
 
     def onOpenActionTriggered(self) -> None:
@@ -127,7 +127,7 @@ class LibReplace(QWidget):
         config = self.parseConfig(Path(directory) / "config.json")
         widget = self._addProject(Path(directory), config)
         if widget:
-            widget.setStyle()
+            widget.installStyle()
             self._saveToConfig()
 
     def getAllContentWidgets(self) -> list[LibReplaceDirectory]:
