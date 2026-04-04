@@ -1,4 +1,5 @@
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QFileDialog
+from ui import noticeBox
 from ui.lib_replace_ui import Ui_LibReplace
 from .lib_replace_directory import LibReplaceDirectory
 from qfluentwidgets.common.style_sheet import setStyleSheet
@@ -146,6 +147,7 @@ class LibReplace(QWidget):
     def _addProject(self, path: Path, config: dict) -> LibReplaceDirectory | None:
         """add a project to the list, only verify the project don't create"""
         if len(config) == 0:
+            noticeBox("错误", "配置文件不存在", self)
             return None
 
         for widget in self.getAllContentWidgets():
@@ -155,6 +157,7 @@ class LibReplace(QWidget):
         configPath = path / "config.json"
         content = self._verify(configPath)
         if not content:
+            noticeBox("错误", "配置文件格式错误", self)
             return None
 
         widget = LibReplaceDirectory()
