@@ -4,8 +4,7 @@ from ui.lib_replace_ui import Ui_LibReplace
 from .lib_replace_directory import LibReplaceDirectory
 from qfluentwidgets.common.style_sheet import setStyleSheet
 from qfluentwidgets import Action, FluentIcon
-from PySide6.QtCore import QDate, QDateTime, QTimer, Qt
-from PySide6.QtGui import QFont, QIcon
+from PySide6.QtCore import QDateTime, QTimer, Qt
 from pathlib import Path
 import json
 
@@ -31,6 +30,7 @@ class LibReplace(QWidget):
     def _installStyleSheet(self, path: str = ":/style/lib_replace.qss") -> None:
         """style sheet installer"""
         setStyleSheet(self.ui.LeftSideBarWidget, path)
+        setStyleSheet(self.ui.MainContentWidget, path)
 
     def _installRequireSettings(self) -> None:
         """require settings installer"""

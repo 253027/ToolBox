@@ -16,8 +16,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QFrame, QGridLayout,
-    QHBoxLayout, QLabel, QSizePolicy, QVBoxLayout,
-    QWidget)
+    QHBoxLayout, QLabel, QSizePolicy, QStackedWidget,
+    QVBoxLayout, QWidget)
 
 from qfluentwidgets import (ScrollArea, SearchLineEdit)
 from ui import DropDownIconButton
@@ -137,6 +137,37 @@ class Ui_LibReplace(object):
 
         self.MainContentWidget = QWidget(LibReplace)
         self.MainContentWidget.setObjectName(u"MainContentWidget")
+        self.MainContentWidgetLayout = QGridLayout(self.MainContentWidget)
+        self.MainContentWidgetLayout.setSpacing(0)
+        self.MainContentWidgetLayout.setObjectName(u"MainContentWidgetLayout")
+        self.MainContentWidgetLayout.setContentsMargins(0, 0, 0, 0)
+        self.ContentContainer = QStackedWidget(self.MainContentWidget)
+        self.ContentContainer.setObjectName(u"ContentContainer")
+        self.EmptyPage = QWidget()
+        self.EmptyPage.setObjectName(u"EmptyPage")
+        self.EmptyPage.setFont(font)
+        self.EmptyPage.setContextMenuPolicy(Qt.ContextMenuPolicy.DefaultContextMenu)
+        self.EmptyPage.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
+        self.EmptyPage.setAutoFillBackground(True)
+        self.EmptyLayout = QVBoxLayout(self.EmptyPage)
+        self.EmptyLayout.setSpacing(0)
+        self.EmptyLayout.setObjectName(u"EmptyLayout")
+        self.EmptyLayout.setContentsMargins(0, 0, 0, 0)
+        self.EmptyLabel = QLabel(self.EmptyPage)
+        self.EmptyLabel.setObjectName(u"EmptyLabel")
+        font1 = QFont()
+        font1.setFamilies([u"Segoe UI"])
+        font1.setPointSize(12)
+        self.EmptyLabel.setFont(font1)
+        self.EmptyLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.EmptyLabel.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
+
+        self.EmptyLayout.addWidget(self.EmptyLabel)
+
+        self.ContentContainer.addWidget(self.EmptyPage)
+
+        self.MainContentWidgetLayout.addWidget(self.ContentContainer, 0, 0, 1, 1)
+
 
         self.LibPeplaceLayout.addWidget(self.MainContentWidget)
 
@@ -152,5 +183,6 @@ class Ui_LibReplace(object):
         LibReplace.setWindowTitle(QCoreApplication.translate("LibReplace", u"LibReplacer", None))
         self.ProjectsTitle.setText(QCoreApplication.translate("LibReplace", u"\u5de5\u7a0b\u5217\u8868", None))
         self.ProjectsHeaderButton.setText("")
+        self.EmptyLabel.setText(QCoreApplication.translate("LibReplace", u"\u9009\u62e9\u5de6\u4fa7\u5de5\u7a0b\u5f00\u59cb\u4f7f\u7528", None))
     # retranslateUi
 

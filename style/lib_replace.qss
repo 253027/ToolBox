@@ -1,4 +1,12 @@
 QWidget#LeftSideBarWidget {
     border-right: 1px solid rgb(229, 232, 238);
-    background-color: rgb(243, 243, 243);
+    background-color: rgb(245, 245, 245);
+}
+
+QWidget#EmptyPage {
+    background-color: rgb(255, 255, 255);
+}
+
+QLabel#EmptyLabel {
+    color: #9e9e9e;
 }
