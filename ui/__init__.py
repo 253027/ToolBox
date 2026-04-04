@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
 from PySide6.QtWidgets import QWidget
-from PySide6.QtCore import QRectF
-from qfluentwidgets import FluentIconBase
+from PySide6.QtCore import QObject, QRectF, Qt
+from qfluentwidgets import FluentIconBase, MessageBox
 from qfluentwidgets.components.widgets.button import (
     TransparentDropDownToolButton,
     ToolButton,
@@ -22,3 +22,12 @@ class DropDownIconButton(TransparentDropDownToolButton):
 
     def paintEvent(self, e) -> None:
         ToolButton.paintEvent(self, e)
+
+
+def noticeBox(title: str, content: str, parent: QObject) -> None:
+    messageBox = MessageBox(title=title, content=content, parent=parent)
+    messageBox.contentLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    messageBox.yesButton.setText("确定")
+    messageBox.cancelButton.hide()
+    messageBox.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+    messageBox.show()
