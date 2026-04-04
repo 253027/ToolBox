@@ -4,7 +4,7 @@ from ui.lib_replace_ui import Ui_LibReplace
 from .lib_replace_directory import LibReplaceDirectory
 from qfluentwidgets.common.style_sheet import setStyleSheet
 from qfluentwidgets import Action, FluentIcon
-from PySide6.QtCore import QDate, QDateTime, Qt
+from PySide6.QtCore import QDate, QDateTime, QTimer, Qt
 from PySide6.QtGui import QFont, QIcon
 from pathlib import Path
 import json
@@ -18,6 +18,7 @@ class LibReplace(QWidget):
         self._installStyleSheet()
         self._installRequireSettings()
         self._initialContentWidgets()
+        self._createrTime()
 
     def _setupUi(self) -> None:
         """initial ui components"""
@@ -239,3 +240,18 @@ class LibReplace(QWidget):
                 }
         except Exception:
             return {}
+
+    def _createrTime(self) -> None:
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.onTimeout)
+        self.timer.start(1000)  # 1 second
+
+    def onTimeout(self) -> None:
+        widgets = self.getAllContentWidgets()
+        for widget in widgets:
+            config = widget.getConfig()
+            if "create_time" not in config:
+                continue
+            widget.setDate(
+                QDateTime.fromString(config["create_time"], "yyyy-MM-dd HH:mm:ss")
+            )

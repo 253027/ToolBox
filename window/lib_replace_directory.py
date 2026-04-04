@@ -124,3 +124,6 @@ class LibReplaceDirectory(QWidget):
 
     def setConfig(self, config: dict) -> None:
         self.config = config
+
+    def getConfig(self) -> dict:
+        return self.config
