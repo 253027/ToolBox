@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import QTimer, Qt, QRegularExpression, Signal, Slot
 from PySide6.QtGui import QFont, QShowEvent, QRegularExpressionValidator
+from ui import noticeBox
 from ui.lib_replace_project_creater_ui import Ui_ProjectCreater
 from qframelesswindow import FramelessDialog, TitleBar
 from qfluentwidgets.common.style_sheet import setStyleSheet
@@ -196,8 +197,9 @@ class ProjectCreater(FramelessDialog):
         self.ui.LocalButton.setEnabled(True)
         self.ui.SshButton.setEnabled(True)
 
-    def onVerifySuccess(self, result: bool):
+    def onVerifySuccess(self):
         """Handle successful SSH connection"""
+        noticeBox("", "验证成功", self)
         if self.task:
             del self.task
             self.task = None
@@ -205,6 +207,7 @@ class ProjectCreater(FramelessDialog):
 
     def onVerifyError(self, error_msg: str):
         """Handle SSH connection error"""
+        noticeBox("", "验证失败", self)
         if self.task:
             del self.task
             self.task = None

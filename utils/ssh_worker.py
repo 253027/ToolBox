@@ -43,7 +43,7 @@ class SSHTask(TaskSignals):
         self.key_file = key_file
         self.ssh_client: Optional[paramiko.SSHClient] = None
 
-    def _connect(self) -> bool:
+    def _connect(self) -> None:
         """Internal method to establish SSH connection"""
         try:
             self.ssh_client = paramiko.SSHClient()
@@ -66,7 +66,6 @@ class SSHTask(TaskSignals):
                     allow_agent=False,
                     look_for_keys=False,
                 )
-            return True
         except Exception as e:
             # Clean up the client on failure
             if hasattr(self, "ssh_client") and self.ssh_client:
