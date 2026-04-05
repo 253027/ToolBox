@@ -1,7 +1,8 @@
-from PySide6.QtWidgets import QVBoxLayout, QWidget, QFileDialog
+from PySide6.QtWidgets import QVBoxLayout, QWidget, QFileDialog, QStackedWidget, QLabel
 from ui import noticeBox
 from ui.lib_replace_ui import Ui_LibReplace
 from .lib_replace_directory import LibReplaceDirectory
+from .lib_replace_content import LibReplaceContent
 from qfluentwidgets.common.style_sheet import setStyleSheet
 from qfluentwidgets import Action, FluentIcon
 from PySide6.QtCore import QDateTime, QTimer, Qt
@@ -169,6 +170,7 @@ class LibReplace(QWidget):
         widget.setTitle(configPath.parent.name)
         widget.setName(str(path))
         widget.setConfig(config)
+        widget.clicked.connect(self.onProjectClicked)
         self._addContentWidget(widget)
         return widget
 
@@ -255,3 +257,26 @@ class LibReplace(QWidget):
             widget.setDate(
                 QDateTime.fromString(config["create_time"], "yyyy-MM-dd HH:mm:ss")
             )
+
+    def onProjectClicked(self, path: str, config: dict) -> None:
+        """Load the clicked project into the content area."""
+        index = None
+        nums = self.ui.ContentContainer.count()
+        for i in range(nums):
+            widget = self.ui.ContentContainer.widget(i)
+            if not widget or not isinstance(widget, LibReplaceContent):
+                continue
+            if widget.getName() == path:
+                index = i
+                break
+
+        if not index:
+            content = LibReplaceContent(self.ui.ContentContainer, path)
+            content.loadProject(path, config)
+            content.ui.breadcrumbBar.currentIndexChanged.connect(
+                lambda: self.ui.ContentContainer.setCurrentIndex(0)
+            )
+            self.ui.ContentContainer.addWidget(content)
+            index = self.ui.ContentContainer.indexOf(content)
+
+        self.ui.ContentContainer.setCurrentIndex(index)

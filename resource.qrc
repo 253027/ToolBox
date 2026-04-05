@@ -5,5 +5,6 @@
     <file>style/lib_replace.qss</file>
     <file>style/lib_replace_directory.qss</file>
     <file>style/lib_replace_project_creater.qss</file>
+    <file>style/lib_replace_content.qss</file>
   </qresource>
 </RCC>

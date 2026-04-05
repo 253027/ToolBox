@@ -82,6 +82,22 @@ class SSHTask(TaskSignals):
         """Start SSH connection in background thread"""
         return self._connect()
 
+    @GenericTask.packet
+    def execute(self, command: str):
+        """Execute SSH command in background thread, streaming output line by line via data_ready"""
+        if not self.ssh_client:
+            raise RuntimeError("SSH client is not connected")
+        stdin, stdout, stderr = self.ssh_client.exec_command(command)
+        output_lines = []
+        for line in stdout:
+            stripped = line.rstrip("\n")
+            self.data_ready.emit(stripped)
+            output_lines.append(stripped)
+        exit_code = stdout.channel.recv_exit_status()
+        if exit_code != 0:
+            raise RuntimeError(stderr.read().decode("utf-8").strip())
+        return "\n".join(output_lines)
+
     def clear(self) -> bool:
         """Close SSH connection"""
         if self.ssh_client:

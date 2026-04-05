@@ -5,13 +5,14 @@ from PySide6.QtWidgets import QVBoxLayout, QWidget
 from ui.lib_replace_directory_ui import Ui_LibReplaceDirectory
 from qfluentwidgets.common.style_sheet import setStyleSheet
 from qfluentwidgets import Action, FluentIcon, FluentIconBase
-from PySide6.QtCore import QDate, Qt, QDateTime, QEvent
+from PySide6.QtCore import QDate, Qt, QDateTime, QEvent, Signal
 from PySide6.QtGui import QFocusEvent, QFont, QIcon, QEnterEvent, QMouseEvent
 
 
 class LibReplaceDirectory(QWidget):
 
     record: ClassVar[set[weakref.ref["LibReplaceDirectory"]]] = set()
+    clicked = Signal(str, dict)  # emits project path
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent=parent)
@@ -105,6 +106,8 @@ class LibReplaceDirectory(QWidget):
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
         self.installStyle()
+        self.clicked.emit(self.name, self.config)
+        super().mousePressEvent(event)
 
     def clearStyle(self) -> None:
         self.focus = False
