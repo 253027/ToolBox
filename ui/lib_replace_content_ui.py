@@ -3,13 +3,12 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QAbstractItemView,
-    QCheckBox,
     QFrame,
     QHeaderView,
     QHBoxLayout,
     QLabel,
     QSizePolicy,
-    QTableWidget,
+    QTableView,
     QVBoxLayout,
     QWidget,
 )
@@ -21,7 +20,6 @@ from qfluentwidgets import (
     LineEdit,
     PrimaryPushButton,
     ProgressBar,
-    TableWidget,
     TransparentPushButton,
     TransparentToolButton,
 )
@@ -65,7 +63,7 @@ class Ui_LibReplaceContent(object):
 
         self.exportButton = TransparentPushButton(FluentIcon.SHARE, "导出清单", parent)
         self.exportButton.setEnabled(False)
-        self.exportButton.setFixedSize(106, 60)
+        self.exportButton.setFixedSize(100, 35)
 
         self.headLayout.addWidget(self.breadcrumbBar, Qt.AlignmentFlag.AlignLeft)
         self.headLayout.addWidget(self.exportButton, Qt.AlignmentFlag.AlignRight)
@@ -110,10 +108,8 @@ class Ui_LibReplaceContent(object):
         self.fileTableFrameLayout.setContentsMargins(10, 0, 10, 0)
         self.fileTableFrameLayout.setSpacing(0)
 
-        self.fileTable = TableWidget(self.fileTableFrame)
+        self.fileTable = QTableView(self.fileTableFrame)
         self.fileTable.setObjectName("FileTable")
-        self.fileTable.setColumnCount(5)
-        self.fileTable.setHorizontalHeaderLabels(["", "文件名", "状态", "模块", ""])
         self.fileTable.verticalHeader().setVisible(False)
         self.fileTable.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
         self.fileTable.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -121,10 +117,7 @@ class Ui_LibReplaceContent(object):
         self.fileTable.setShowGrid(False)
         self.fileTable.setAlternatingRowColors(False)
         self.fileTable.setFrameShape(QFrame.Shape.NoFrame)
-        self.fileTable.setColumnWidth(0, 36)
-        self.fileTable.setColumnWidth(2, 80)
-        self.fileTable.setColumnWidth(3, 150)
-        self.fileTable.setColumnWidth(4, 36)
+        # Column widths and headers are set from code after the model is attached.
 
         header = self.fileTable.horizontalHeader()
         header.setFixedHeight(30)
@@ -140,11 +133,6 @@ class Ui_LibReplaceContent(object):
         self._headerWidgets: dict[int, QWidget] = {}
         header.sectionResized.connect(self._repositionAllHeaderWidgets)
         header.geometriesChanged.connect(self._repositionAllHeaderWidgets)
-
-        # Default: place a CheckBox in column 0
-        self.selectAllBox = QCheckBox(parent)
-        self.selectAllBox.setFixedSize(16, 16)
-        self.setHeaderWidget(0, self.selectAllBox)
 
         self.fileTableFrameLayout.addWidget(self.fileTable)
         self.LibReplaceContentLayout.addWidget(self.fileTableFrame, stretch=1)
@@ -173,7 +161,11 @@ class Ui_LibReplaceContent(object):
         if widget is None:
             return
         header = self.fileTable.horizontalHeader()
-        x_offset = sum(header.sectionSize(i) for i in range(col))
+        # use header.sectionPosition to get the x offset of the column
+        try:
+            x_offset = header.sectionPosition(col)
+        except Exception:
+            x_offset = sum(header.sectionSize(i) for i in range(col))
         col_w = header.sectionSize(col)
         h = header.height()
         size = widget.size()

@@ -16,23 +16,70 @@ QFrame#BottomBar {
     border-top: 1px solid rgb(229, 232, 238);
 }
 
-QTableWidget#FileTable {
-    background-color: #ffffff;
+QTableView#FileTable {
     border: none;
     outline: none;
+    alternate-background-color: #fbfbfb;
+    selection-background-color: rgba(25, 118, 210, 0.12); /* soft accent */
 }
 
-QTableWidget#FileTable::item {
-    padding: 4px 6px;
-    border-bottom: 1px solid rgb(243, 245, 248);
-}
-
-QHeaderView::section {
-    background-color: #ffffff;
-    color: rgba(0, 0, 0, 0.72);
-    border: none;
-    border-bottom: 1px solid rgb(229, 232, 238);
+QTableView#FileTable::item {
     padding: 6px 8px;
+    border-bottom: 1px solid rgb(243, 245, 248);
+    border-right: 1px solid rgb(243, 245, 248);
+}
+
+QTableView#FileTable::item:hover {
+    background: rgb(245, 245, 245);
+}
+
+QTableView#FileTable QTableCornerButton::section {
+    background: transparent;
+    border: none;
+}
+
+QComboBox#moduleCombo {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 6px;
+    padding: 4px 10px;
+    min-height: 28px;
+}
+
+QComboBox#moduleCombo::down-arrow {
+    width: 14px;
+    height: 14px;
+}
+
+TransparentToolButton {
+    padding: 0px;
+}
+
+TransparentToolButton {
+    color: rgba(0, 0, 0, 0.54);
+}
+
+TransparentToolButton:hover {
+    background: rgba(0, 0, 0, 0.04);
+    border-radius: 6px;
+}
+
+QComboBox#moduleCombo QListView::item {
+    min-height: 30px;
+    padding: 6px 10px;
+}
+
+QComboBox#moduleCombo QListView::item:hover {
+    background: rgba(25, 118, 210, 0.04);
+}
+
+QComboBox#moduleCombo QListView::item:selected {
+    background: rgba(25, 118, 210, 0.08);
+}
+
+/* tighten filename cell spacing */
+QTableView#FileTable::item {
+    padding-left: 12px;
 }
 
 QLabel#envDot {
