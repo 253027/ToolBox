@@ -3,7 +3,13 @@ import os
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QTimer, QSortFilterProxyModel
-from PySide6.QtGui import QColor, QStandardItemModel, QStandardItem
+from PySide6.QtGui import (
+    QColor,
+    QResizeEvent,
+    QShowEvent,
+    QStandardItemModel,
+    QStandardItem,
+)
 from PySide6.QtWidgets import (
     QFileDialog,
     QWidget,
@@ -153,6 +159,7 @@ class LibReplaceContent(QWidget):
         header.setSectionResizeMode(
             LibReplaceContent.ACTION_COLUMN_INDEX, QHeaderView.ResizeMode.Fixed
         )
+        header.sectionResized.connect(self.onSectionResized)
 
         self._activeModuleFilters: set[str] = set()
         self._deleteButtons: dict[str, TransparentToolButton] = {}
@@ -375,10 +382,6 @@ class LibReplaceContent(QWidget):
         lines = [f"{i['filename']}\t{i['module']}" for i in self._allItems()]
         Path(path).write_text("\n".join(lines), encoding="utf-8")
 
-    # ------------------------------------------------------------------ #
-    #  Helpers                                                             #
-    # ------------------------------------------------------------------ #
-
     def _addRow(
         self,
         filename: str,
@@ -420,8 +423,6 @@ class LibReplaceContent(QWidget):
         deleteButton.clicked.connect(lambda _, fp=filepath: self._onItemDeleted(fp))
         self._deleteButtons[filepath] = deleteButton
         self._rebuildIndexWidgets()
-
-    # legacy placeholder removed: row-level widgets are now represented in the model
 
     def _rowFilename(self, row: int) -> str:
         item = self._model.item(row, LibReplaceContent.FILENAME_COLUMN_INDEX)
@@ -624,7 +625,6 @@ class LibReplaceContent(QWidget):
         return result
 
     def _clearItems(self) -> None:
-        # clear source model rows
         if self._model.rowCount() > 0:
             self._model.removeRows(0, self._model.rowCount())
 
@@ -674,3 +674,40 @@ class LibReplaceContent(QWidget):
         with open(bakPath, "w", encoding="utf-8") as f:
             json.dump(self._projectConfig, f, indent=4, ensure_ascii=True)
         os.replace(bakPath, configPath)
+
+    def onSectionResized(self, logicalIndex: int, oldSize: int, newSize: int) -> None:
+        pass
+
+    def _reInstallHeaderWidth(self) -> None:
+        header = self.ui.fileTable.horizontalHeader()
+        total = 0
+        for index in range(header.count()):
+            total += header.sectionSize(index)
+        width = (
+            self.ui.fileTableFrame.width()
+            - self.ui.fileTableFrameLayout.contentsMargins().left()
+            - self.ui.fileTableFrameLayout.contentsMargins().right()
+        )
+        addWidth = (width - total) // 2
+        self.ui.fileTable.setColumnWidth(
+            LibReplaceContent.FILENAME_COLUMN_INDEX,
+            header.sectionSize(LibReplaceContent.FILENAME_COLUMN_INDEX) + addWidth,
+        )
+        self.ui.fileTable.setColumnWidth(
+            LibReplaceContent.MODULE_COLUMN_INDEX,
+            header.sectionSize(LibReplaceContent.MODULE_COLUMN_INDEX) + addWidth,
+        )
+        header.setSectionResizeMode(
+            LibReplaceContent.FILENAME_COLUMN_INDEX, QHeaderView.ResizeMode.Interactive
+        )
+        header.setSectionResizeMode(
+            LibReplaceContent.MODULE_COLUMN_INDEX, QHeaderView.ResizeMode.Interactive
+        )
+
+    def showEvent(self, event: QShowEvent) -> None:
+        super().showEvent(event)
+        self._reInstallHeaderWidth()
+
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        super().resizeEvent(event)
+        self._reInstallHeaderWidth()
