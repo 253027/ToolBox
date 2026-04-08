@@ -10,3 +10,14 @@ QWidget#EmptyPage {
 QLabel#EmptyLabel {
     color: #9e9e9e;
 }
+
+QWidget#ScrollAreaWidgetContents {
+    background-color: rgb(245, 245, 245);
+}
+
+QScrollArea#ScrollArea,
+QAbstractScrollArea#ScrollArea,
+QScrollArea#ScrollArea QWidget#qt_scrollarea_viewport,
+QAbstractScrollArea#ScrollArea QWidget#qt_scrollarea_viewport {
+    background-color: rgb(245, 245, 245);
+}

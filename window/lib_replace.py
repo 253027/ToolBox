@@ -17,6 +17,7 @@ class LibReplace(QWidget):
         self.setWindowFlag(Qt.WindowType.Window)
         self._installStyleSheet()
         self._installRequireSettings()
+        self._updateContent()  # initial for empty project
         self._initialContentWidgets()
         self._createrTime()
 
@@ -27,6 +28,9 @@ class LibReplace(QWidget):
         self.ui.ProjectsHeaderButton.setIcon(FluentIcon.ADD_TO)
         # escape: QFont::setPointSize: Point size <= 0 (-1), must be greater than 0
         self.ui.ProjectsHeaderButton.setFont("")
+        # Force an explicit painted background for scroll content on all platforms.
+        self.ui.ScrollAreaWidgetContents.setAutoFillBackground(True)
+        self.ui.ScrollArea.viewport().setAutoFillBackground(True)
 
     def _installStyleSheet(self, path: str = ":/style/lib_replace.qss") -> None:
         """style sheet installer"""
@@ -54,7 +58,7 @@ class LibReplace(QWidget):
 
     def _addContentWidget(self, widget: QWidget) -> None:
         """add content widget to ScrollArea"""
-        widget.setParent(self.ui.ScrollArea)
+        widget.setParent(self.ui.ScrollAreaWidgetContents)
         self.ui.ScrollAreaWidgetContentsLayout.addWidget(widget)
         self._updateContent()
 
