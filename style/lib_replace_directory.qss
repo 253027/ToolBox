@@ -9,3 +9,11 @@ QWidget#Content[hover="true"] {
     background-color: rgb(238, 240, 243);
     border-radius: 8px;
 }
+
+QLabel#Data {
+    color: rgb(0, 0, 0);
+}
+
+QLabel#Directory {
+    color: rgb(0, 0, 0);
+}
