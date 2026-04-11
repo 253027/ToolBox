@@ -75,9 +75,7 @@ class LibReplaceContent(QWidget):
     def __init__(self, parent: QWidget, name: str):
         super().__init__(parent)
         self.name = name
-        self._setupUi()
-        self._installRequireSettings()
-        self._installStyleSheet()
+        self._forbidResizeColumns: list[int] = []
         self._projectPath: Path | None = None
         self._projectConfig: dict = {}
         self._resolvers: list[ModuleResolver] = []  # keep alive
@@ -85,6 +83,9 @@ class LibReplaceContent(QWidget):
         self._compileTotal = 0
         self._compileDone = 0
         self._sshTask: SSHTask | None = None
+        self._setupUi()
+        self._installRequireSettings()
+        self._installStyleSheet()
 
     def _setupUi(self) -> None:
         self.ui = Ui_LibReplaceContent()
@@ -144,23 +145,14 @@ class LibReplaceContent(QWidget):
         )
 
         header = self.ui.fileTable.horizontalHeader()
-        header.setSectionResizeMode(
-            LibReplaceContent.SELECT_COLUMN_INDEX, QHeaderView.ResizeMode.Fixed
-        )
-        header.setSectionResizeMode(
-            LibReplaceContent.FILENAME_COLUMN_INDEX, QHeaderView.ResizeMode.Stretch
-        )
-        header.setSectionResizeMode(
-            LibReplaceContent.STATUS_COLUMN_INDEX, QHeaderView.ResizeMode.Fixed
-        )
-        header.setSectionResizeMode(
-            LibReplaceContent.MODULE_COLUMN_INDEX, QHeaderView.ResizeMode.Stretch
-        )
-        header.setSectionResizeMode(
-            LibReplaceContent.ACTION_COLUMN_INDEX, QHeaderView.ResizeMode.Fixed
-        )
         header.sectionResized.connect(self.onSectionResized)
+        header.setMinimumSectionSize(0)
 
+        # self._forbidResizeColumns = [
+        #     LibReplaceContent.SELECT_COLUMN_INDEX,
+        #     LibReplaceContent.STATUS_COLUMN_INDEX,
+        #     LibReplaceContent.ACTION_COLUMN_INDEX,
+        # ]
         self._activeModuleFilters: set[str] = set()
         self._deleteButtons: dict[str, TransparentToolButton] = {}
 
@@ -676,7 +668,146 @@ class LibReplaceContent(QWidget):
         os.replace(bakPath, configPath)
 
     def onSectionResized(self, logicalIndex: int, oldSize: int, newSize: int) -> None:
-        pass
+        tabel = self.ui.fileTable
+        headers = tabel.horizontalHeader()
+        if logicalIndex < 0 or logicalIndex >= headers.count():
+            return
+
+        headers.blockSignals(True)
+
+        offset = self.cursor().pos().x() - tabel.mapToGlobal(headers.pos()).x()
+        start = headers.sectionViewportPosition(logicalIndex)
+        end = start + headers.sectionSize(logicalIndex)
+        isLeft = abs(offset - start) < abs(offset - end)
+
+        # check if is the first visible column
+        valid = False
+        for i in range(logicalIndex):
+            if not headers.isSectionHidden(i):
+                valid = True
+                break
+        if not valid and isLeft:
+            self.ui.fileTable.setColumnWidth(logicalIndex, oldSize)
+            headers.blockSignals(False)
+            return
+
+        # check if is the last visible column
+        valid = False
+        for i in range(headers.count() - 1, logicalIndex, -1):
+            if not headers.isSectionHidden(i):
+                valid = True
+                break
+        if not valid and not isLeft:
+            self.ui.fileTable.setColumnWidth(logicalIndex, oldSize)
+            headers.blockSignals(False)
+            return
+
+        def GetVacantSectionInfo(start: int, end: int) -> tuple[int, dict[int, int]]:
+            memo: dict[int, int] = {}
+            vacant = 0
+            next = 1 if end > start else -1
+            for i in range(start, end, next):
+                if headers.isSectionHidden(i):
+                    continue
+                if i in self._forbidResizeColumns:
+                    continue
+                vacant += headers.sectionSize(i)
+                memo[i] = headers.sectionSize(i)
+            return (vacant, memo)
+
+        if logicalIndex not in self._forbidResizeColumns:  # is not Fixed Column
+            if abs(offset - start) < abs(offset - end):  # left side
+                vacant, memo = GetVacantSectionInfo(0, logicalIndex)
+            else:  # right side
+                vacant, memo = GetVacantSectionInfo(logicalIndex + 1, headers.count())
+            try:
+                if newSize > oldSize:  # expand
+                    need = newSize - oldSize
+                    limit = headers.minimumSectionSize()
+                    vacant -= limit * len(memo)
+                    if need > vacant:  # too large reject to expand
+                        tabel.setColumnWidth(logicalIndex, oldSize)
+                        return
+
+                    for i in sorted(memo.keys(), reverse=isLeft):
+                        catSub = min(need, memo[i] - limit)
+                        memo[i] -= catSub
+                        need -= catSub
+                        self.ui.fileTable.setColumnWidth(i, memo[i])
+                        if need == 0:
+                            break
+                else:  # shrink
+                    need = oldSize - newSize
+                    limit = headers.maximumSectionSize()
+                    vacant = limit * len(memo) - vacant
+                    if need > vacant:  # too large reject to shrink
+                        tabel.setColumnWidth(logicalIndex, oldSize)
+                        return
+
+                    for i in sorted(memo.keys(), reverse=isLeft):
+                        catAdd = min(need, limit - memo[i])
+                        memo[i] += catAdd
+                        need -= catAdd
+                        self.ui.fileTable.setColumnWidth(i, memo[i])
+                        if need == 0:
+                            break
+            finally:
+                headers.blockSignals(False)
+        else:
+            # leftVacant, leftMemo = GetVacantSectionInfo(0, logicalIndex)
+            # rightVacant, rightMemo = GetVacantSectionInfo(
+            #     logicalIndex + 1, headers.count()
+            # )
+
+            # isLeftAdd = False
+            # if (newSize < oldSize and isLeft) or (newSize > oldSize and not isLeft):
+            #     isLeftAdd = True
+
+            # try:
+            #     need = abs(newSize - oldSize)
+            #     minLimit = headers.minimumSectionSize()
+            #     maxLimit = headers.maximumSectionSize()
+
+            #     if isLeftAdd:
+            #         leftVacant = len(leftMemo) * maxLimit - leftVacant
+            #         rightVacant -= len(rightMemo) * minLimit
+            #     else:
+            #         rightVacant = len(rightMemo) * maxLimit - rightVacant
+            #         leftVacant -= len(leftMemo) * minLimit
+
+            #     if leftVacant < need or rightVacant < need:
+            #         return
+
+            #     leftNeed = need
+            #     for i in sorted(leftMemo.keys(), reverse=True):
+            #         temp = (
+            #             min(leftNeed, maxLimit - leftMemo[i])
+            #             if isLeftAdd
+            #             else min(leftNeed, leftMemo[i] - minLimit)
+            #         )
+            #         leftMemo[i] += temp * (1 if isLeftAdd else -1)
+            #         leftNeed -= temp
+            #         self.ui.fileTable.setColumnWidth(i, leftMemo[i])
+            #         if leftNeed == 0:
+            #             break
+
+            #     rightNeed = need
+            #     for i in sorted(rightMemo.keys()):
+            #         temp = (
+            #             min(rightNeed, rightMemo[i] - minLimit)
+            #             if isLeftAdd
+            #             else min(rightNeed, maxLimit - rightMemo[i])
+            #         )
+            #         rightMemo[i] += temp * (-1 if isLeftAdd else 1)
+            #         rightNeed -= temp
+            #         self.ui.fileTable.setColumnWidth(i, rightMemo[i])
+            #         if rightNeed == 0:
+            #             break
+
+            # finally:
+            #     self.ui.fileTable.setColumnWidth(logicalIndex, oldSize)
+            #     headers.blockSignals(False)
+            pass
 
     def _reInstallHeaderWidth(self) -> None:
         header = self.ui.fileTable.horizontalHeader()
@@ -689,6 +820,7 @@ class LibReplaceContent(QWidget):
             - self.ui.fileTableFrameLayout.contentsMargins().right()
         )
         addWidth = (width - total) // 2
+        header.blockSignals(True)
         self.ui.fileTable.setColumnWidth(
             LibReplaceContent.FILENAME_COLUMN_INDEX,
             header.sectionSize(LibReplaceContent.FILENAME_COLUMN_INDEX) + addWidth,
@@ -697,12 +829,7 @@ class LibReplaceContent(QWidget):
             LibReplaceContent.MODULE_COLUMN_INDEX,
             header.sectionSize(LibReplaceContent.MODULE_COLUMN_INDEX) + addWidth,
         )
-        header.setSectionResizeMode(
-            LibReplaceContent.FILENAME_COLUMN_INDEX, QHeaderView.ResizeMode.Interactive
-        )
-        header.setSectionResizeMode(
-            LibReplaceContent.MODULE_COLUMN_INDEX, QHeaderView.ResizeMode.Interactive
-        )
+        header.blockSignals(False)
 
     def showEvent(self, event: QShowEvent) -> None:
         super().showEvent(event)
