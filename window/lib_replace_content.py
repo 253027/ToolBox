@@ -75,6 +75,7 @@ class LibReplaceContent(QWidget):
     def __init__(self, parent: QWidget, name: str):
         super().__init__(parent)
         self.name = name
+        self._ignoreHeaderResizeSignal = False
         self._forbidResizeColumns: list[int] = []
         self._projectPath: Path | None = None
         self._projectConfig: dict = {}
@@ -668,6 +669,9 @@ class LibReplaceContent(QWidget):
         os.replace(bakPath, configPath)
 
     def onSectionResized(self, logicalIndex: int, oldSize: int, newSize: int) -> None:
+        if self._ignoreHeaderResizeSignal:
+            return
+
         tabel = self.ui.fileTable
         headers = tabel.horizontalHeader()
         if logicalIndex < 0 or logicalIndex >= headers.count():
@@ -820,16 +824,18 @@ class LibReplaceContent(QWidget):
             - self.ui.fileTableFrameLayout.contentsMargins().right()
         )
         addWidth = (width - total) // 2
-        header.blockSignals(True)
-        self.ui.fileTable.setColumnWidth(
-            LibReplaceContent.FILENAME_COLUMN_INDEX,
-            header.sectionSize(LibReplaceContent.FILENAME_COLUMN_INDEX) + addWidth,
-        )
-        self.ui.fileTable.setColumnWidth(
-            LibReplaceContent.MODULE_COLUMN_INDEX,
-            header.sectionSize(LibReplaceContent.MODULE_COLUMN_INDEX) + addWidth,
-        )
-        header.blockSignals(False)
+        self._ignoreHeaderResizeSignal = True
+        try:
+            self.ui.fileTable.setColumnWidth(
+                LibReplaceContent.FILENAME_COLUMN_INDEX,
+                header.sectionSize(LibReplaceContent.FILENAME_COLUMN_INDEX) + addWidth,
+            )
+            self.ui.fileTable.setColumnWidth(
+                LibReplaceContent.MODULE_COLUMN_INDEX,
+                header.sectionSize(LibReplaceContent.MODULE_COLUMN_INDEX) + addWidth,
+            )
+        finally:
+            self._ignoreHeaderResizeSignal = False
 
     def showEvent(self, event: QShowEvent) -> None:
         super().showEvent(event)
