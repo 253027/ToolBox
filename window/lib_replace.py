@@ -98,11 +98,11 @@ class LibReplace(QWidget):
         projectPath.mkdir(parents=True, exist_ok=True)
 
         # Prepare config data with timestamp
+        currentTime = QDateTime().currentDateTime().toString("yyyy-MM-dd HH:mm:ss")
         configData = {
             "type": type,
-            "create_time": QDateTime()
-            .currentDateTime()
-            .toString("yyyy-MM-dd HH:mm:ss"),
+            "create_time": currentTime,
+            "update_time": currentTime,
             "file": [],
             "remote": remote,
             "host": host,
@@ -170,7 +170,7 @@ class LibReplace(QWidget):
         widget = LibReplaceDirectory()
         widget.setIcon(FluentIcon.FOLDER)
         widget.setDate(
-            QDateTime.fromString(content["create_time"], "yyyy-MM-dd HH:mm:ss")
+            QDateTime.fromString(content["update_time"], "yyyy-MM-dd HH:mm:ss")
         )
         widget.setTitle(configPath.parent.name)
         widget.setName(str(path))
@@ -188,6 +188,9 @@ class LibReplace(QWidget):
             with open(path, "r", encoding="utf-8") as f:
                 config = json.load(f)
                 if "create_time" not in config:
+                    return None
+
+                if "update_time" not in config:
                     return None
 
                 if "file" not in config or not isinstance(config["file"], list):
@@ -238,6 +241,7 @@ class LibReplace(QWidget):
                 return {
                     "type": config["type"],
                     "create_time": config["create_time"],
+                    "update_time": config["update_time"],
                     "file": config["file"],
                     "remote": config["remote"],
                     "host": config["host"],
@@ -257,10 +261,10 @@ class LibReplace(QWidget):
         widgets = self.getAllContentWidgets()
         for widget in widgets:
             config = widget.getConfig()
-            if "create_time" not in config:
+            if "update_time" not in config:
                 continue
             widget.setDate(
-                QDateTime.fromString(config["create_time"], "yyyy-MM-dd HH:mm:ss")
+                QDateTime.fromString(config["update_time"], "yyyy-MM-dd HH:mm:ss")
             )
 
     def onProjectClicked(self, path: str, config: dict) -> None:
@@ -281,7 +285,15 @@ class LibReplace(QWidget):
             content.ui.breadcrumbBar.currentIndexChanged.connect(
                 lambda: self.ui.ContentContainer.setCurrentIndex(0)
             )
+            content.update_config.connect(self.updateDirectoryConfig)
             self.ui.ContentContainer.addWidget(content)
             index = self.ui.ContentContainer.indexOf(content)
 
         self.ui.ContentContainer.setCurrentIndex(index)
+
+    def updateDirectoryConfig(self, name: str, config: dict) -> None:
+        widgets = self.getAllContentWidgets()
+        for widget in widgets:
+            if widget.getName() == name:
+                widget.setConfig(config)
+                break

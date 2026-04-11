@@ -2,7 +2,7 @@
 import os
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QTimer, QSortFilterProxyModel
+from PySide6.QtCore import QDateTime, Qt, QTimer, QSortFilterProxyModel, Signal
 from PySide6.QtGui import (
     QColor,
     QResizeEvent,
@@ -71,6 +71,8 @@ class LibReplaceContent(QWidget):
     MODULE_COLUMN_INDEX = 3
     ACTION_COLUMN_INDEX = 4
     COLUMN_COUNT = 5
+
+    update_config = Signal(str, dict)
 
     def __init__(self, parent: QWidget, name: str):
         super().__init__(parent)
@@ -664,6 +666,10 @@ class LibReplaceContent(QWidget):
         bakPath = self._projectPath / "config.json.bak"
         self._projectConfig["file"] = self._allItems()
         self._projectConfig["moduleFilters"] = list(self._activeModuleFilters)
+        self._projectConfig["update_time"] = (
+            QDateTime().currentDateTime().toString("yyyy-MM-dd HH:mm:ss")
+        )
+        self.update_config.emit(self.name, self._projectConfig)
         with open(bakPath, "w", encoding="utf-8") as f:
             json.dump(self._projectConfig, f, indent=4, ensure_ascii=True)
         os.replace(bakPath, configPath)
