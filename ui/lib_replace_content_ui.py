@@ -24,6 +24,8 @@ from qfluentwidgets import (
     TransparentToolButton,
 )
 
+from ui import HorizontalHeaderView
+
 
 class Ui_LibReplaceContent(object):
     def setupUi(self, LibReplaceContent):
@@ -119,7 +121,7 @@ class Ui_LibReplaceContent(object):
         self.fileTable.setFrameShape(QFrame.Shape.NoFrame)
         # Column widths and headers are set from code after the model is attached.
 
-        header = self.fileTable.horizontalHeader()
+        header = HorizontalHeaderView(self.fileTable)
         header.setFixedHeight(30)
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Interactive)
@@ -129,6 +131,7 @@ class Ui_LibReplaceContent(object):
         header.setDefaultAlignment(
             Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter
         )
+        self.fileTable.setHorizontalHeader(header)
 
         self._headerWidgets: dict[int, QWidget] = {}
         header.sectionResized.connect(self._repositionAllHeaderWidgets)
