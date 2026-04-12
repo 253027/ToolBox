@@ -131,6 +131,7 @@ class Ui_LibReplaceContent(object):
         header.setDefaultAlignment(
             Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter
         )
+        header.setStyleSource(self.fileTable)
         self.fileTable.setHorizontalHeader(header)
 
         self._headerWidgets: dict[int, QWidget] = {}

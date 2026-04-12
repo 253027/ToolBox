@@ -1,8 +1,9 @@
 # Copyright (C) 2026 mogaitesheng
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-from PySide6.QtWidgets import QHeaderView, QWidget
-from PySide6.QtCore import QObject, QRectF, Qt
+from PySide6.QtGui import QMouseEvent, QPainter, QColor
+from PySide6.QtWidgets import QHeaderView, QWidget, QStyleOptionButton, QStyle
+from PySide6.QtCore import QObject, QPoint, QRect, QRectF, Qt, Signal
 from enum import Enum
 from qfluentwidgets import FluentIconBase, MessageBox
 from qfluentwidgets.components.widgets.button import (
@@ -35,6 +36,7 @@ def noticeBox(title: str, content: str, parent: QObject) -> None:
 
 
 class HorizontalHeaderView(QHeaderView):
+    toggle = Signal(bool)
 
     class ResizeSide(Enum):
         LEFT = "left"
@@ -44,6 +46,16 @@ class HorizontalHeaderView(QHeaderView):
         super().__init__(Qt.Orientation.Horizontal, parent)
         self.sectionResized.connect(self.onSectionResized)
         self.ignoreSignal = False
+        self.headerChecked = False
+        self.styleSource = None
+
+    def setStyleSource(self, widget: QWidget | None) -> None:
+        """Set an external widget as style source for the header checkbox.
+
+        When set, the header will use `widget.style()` / `opt.initFrom(widget)`
+        to render the checkbox so it visually matches that widget.
+        """
+        self.styleSource = widget
 
     def setBlockSignals(self, state: bool) -> None:
         self.ignoreSignal = state
@@ -150,3 +162,85 @@ class HorizontalHeaderView(QHeaderView):
         finally:
             self.setBlockSignals(False)
             self.blockSignals(False)
+
+    def _paintFirstColumn(self, painter: QPainter, rect: QRect) -> None:
+        """
+        paint first column for checkbox
+        """
+        size = 16  # checkbox square size in pixels
+        x = rect.x() + (rect.width() - size) // 2  # center horizontally
+        y = rect.y() + (rect.height() - size) // 2  # center vertically
+        try:
+            opt = QStyleOptionButton()
+            styleSrc = self.styleSource if self.styleSource is not None else self
+            try:
+                opt.initFrom(styleSrc)
+            except Exception:
+                pass
+            opt.rect = QRect(x, y, size, size)
+            if hasattr(QStyle, "CE_CheckBox") and hasattr(QStyle, "State_On"):
+                state = getattr(QStyle, "State_On")
+                if self.headerChecked:
+                    opt.state = opt.state | state
+                else:
+                    opt.state = opt.state & ~state
+
+                sytle = styleSrc.style() if hasattr(styleSrc, "style") else self.style()
+                checkbox = getattr(QStyle, "CE_CheckBox")
+                sytle.drawControl(checkbox, opt, painter, styleSrc)
+                return
+            raise RuntimeError("QStyle checkbox constants unavailable; fallback")
+        except Exception:
+            painter.save()  # save painter state
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+            pen = painter.pen()
+            pen.setColor(QColor("black"))
+            painter.setPen(pen)
+            painter.setBrush(QColor("white"))
+            cb_rect = QRect(x, y, size, size)
+            # painter.drawRect(cb_rect)
+            painter.drawRoundedRect(cb_rect, 4.5, 4.5)
+            if self.headerChecked:
+                inner = QRect(x + 3, y + 3, size - 6, size - 6)
+                painter.fillRect(inner, QColor("black"))
+            painter.restore()
+
+    def paintSection(self, painter: QPainter, rect: QRect, logicalIndex: int) -> None:
+        super().paintSection(painter, rect, logicalIndex)
+        if logicalIndex == 0:
+            self._paintFirstColumn(painter, rect)
+
+    def _onFirstColumnClicked(self, pos: QPoint) -> None:
+        size = 16
+        start = self.sectionViewportPosition(0)
+        x = start + (self.sectionSize(0) - size) // 2
+        y = (self.height() - size) // 2
+        rect = QRect(x, y, size, size)
+        if rect.contains(pos):
+            self.headerChecked = not self.headerChecked
+            try:
+                self.updateSection(0)
+            except Exception:
+                self.update()
+            try:
+                self.toggle.emit(self.headerChecked)
+            except Exception:
+                pass
+            return
+
+    def _handleColumnPressEvent(self, event: QMouseEvent) -> None:
+        """Handle mouse press to toggle header checkbox when clicked."""
+        pos = event.pos()
+        index = -1
+        for i in range(self.count()):
+            start = self.sectionViewportPosition(i)
+            size = self.sectionSize(i)
+            if start <= pos.x() < start + size:
+                index = i
+                break
+        if index == 0:
+            self._onFirstColumnClicked(pos)
+
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        self._handleColumnPressEvent(event)
+        super().mousePressEvent(event)
