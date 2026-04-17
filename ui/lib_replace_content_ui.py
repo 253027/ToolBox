@@ -24,7 +24,7 @@ from qfluentwidgets import (
     TransparentToolButton,
 )
 
-from ui import HorizontalHeaderView
+from ui import CenteredCheckDelegate, HorizontalHeaderView
 
 
 class Ui_LibReplaceContent(object):
@@ -133,6 +133,9 @@ class Ui_LibReplaceContent(object):
         )
         header.setStyleSource(self.fileTable)
         self.fileTable.setHorizontalHeader(header)
+        self.fileTable.setItemDelegateForColumn(
+            0, CenteredCheckDelegate(self.fileTable)
+        )
 
         self._headerWidgets: dict[int, QWidget] = {}
         header.sectionResized.connect(self._repositionAllHeaderWidgets)

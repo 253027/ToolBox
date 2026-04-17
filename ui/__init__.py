@@ -1,9 +1,28 @@
 # Copyright (C) 2026 mogaitesheng
 # SPDX-License-Identifier: LGPL-3.0-or-later
 
-from PySide6.QtGui import QMouseEvent, QPainter, QColor
-from PySide6.QtWidgets import QHeaderView, QWidget, QStyleOptionButton, QStyle
-from PySide6.QtCore import QObject, QPoint, QRect, QRectF, Qt, Signal
+from PySide6.QtWidgets import (
+    QApplication,
+    QHeaderView,
+    QStyle,
+    QStyleOptionButton,
+    QStyleOptionViewItem,
+    QStyledItemDelegate,
+    QWidget,
+)
+from PySide6.QtCore import (
+    QAbstractItemModel,
+    QEvent,
+    QModelIndex,
+    QPersistentModelIndex,
+    QObject,
+    QPoint,
+    QRect,
+    QRectF,
+    Qt,
+    Signal,
+)
+from PySide6.QtGui import QIcon, QKeyEvent, QMouseEvent, QPainter, QColor
 from enum import Enum
 from qfluentwidgets import FluentIconBase, MessageBox
 from qfluentwidgets.components.widgets.button import (
@@ -24,6 +43,182 @@ class DropDownIconButton(TransparentDropDownToolButton):
 
     def paintEvent(self, e) -> None:
         ToolButton.paintEvent(self, e)
+
+
+class CenteredCheckDelegate(QStyledItemDelegate):
+    """Renders the CheckStateRole checkbox centered horizontally and vertically in the cell."""
+
+    def _style(self, option: QStyleOptionViewItem) -> QStyle:
+        widget = option.widget
+        return widget.style() if widget else QApplication.style()
+
+    def _itemAlignment(
+        self, index: QModelIndex | QPersistentModelIndex, fallback: Qt.AlignmentFlag
+    ) -> Qt.AlignmentFlag:
+        alignment = index.data(Qt.ItemDataRole.TextAlignmentRole)
+        if alignment is None:
+            return fallback
+        if isinstance(alignment, Qt.AlignmentFlag):
+            return alignment
+        return Qt.AlignmentFlag(alignment)
+
+    def _viewOption(
+        self,
+        option: QStyleOptionViewItem,
+        index: QModelIndex | QPersistentModelIndex,
+    ) -> QStyleOptionViewItem:
+        view_option = QStyleOptionViewItem(option)
+        self.initStyleOption(view_option, index)
+        return view_option
+
+    def _checkRect(
+        self,
+        option: QStyleOptionViewItem,
+        index: QModelIndex | QPersistentModelIndex,
+    ) -> QRect:
+        view_option = self._viewOption(option, index)
+        style = self._style(view_option)
+        rect = style.subElementRect(
+            QStyle.SubElement.SE_ItemViewItemCheckIndicator,
+            view_option,
+            view_option.widget,
+        )
+        alignment = self._itemAlignment(
+            index,
+            Qt.AlignmentFlag.AlignCenter,
+        )
+        return QStyle.alignedRect(
+            view_option.direction,
+            alignment,
+            rect.size(),
+            view_option.rect,
+        )
+
+    def _checkState(self, value: Qt.CheckState | int | None) -> Qt.CheckState | None:
+        if value is None:
+            return None
+        if isinstance(value, Qt.CheckState):
+            return value
+        return Qt.CheckState(value)
+
+    def paint(
+        self,
+        painter: QPainter,
+        option: QStyleOptionViewItem,
+        index: QModelIndex | QPersistentModelIndex,
+    ) -> None:
+        check_state = index.data(Qt.ItemDataRole.CheckStateRole)
+        if check_state is None:
+            return super().paint(painter, option, index)
+
+        opt = self._viewOption(option, index)
+        style = self._style(opt)
+
+        style.drawPrimitive(
+            QStyle.PrimitiveElement.PE_PanelItemViewItem, opt, painter, opt.widget
+        )
+
+        if opt.features & QStyleOptionViewItem.ViewItemFeature.HasCheckIndicator:
+            cs = self._checkState(check_state)
+            if cs == Qt.CheckState.Checked:
+                opt.state |= QStyle.StateFlag.State_On
+            elif cs == Qt.CheckState.PartiallyChecked:
+                opt.state |= QStyle.StateFlag.State_NoChange
+            else:
+                opt.state |= QStyle.StateFlag.State_Off
+
+            opt.rect = self._checkRect(option, index)
+            opt.state &= ~QStyle.StateFlag.State_HasFocus
+            style.drawPrimitive(
+                QStyle.PrimitiveElement.PE_IndicatorItemViewItemCheck,
+                opt,
+                painter,
+                opt.widget,
+            )
+            return
+
+        if not opt.icon.isNull():
+            icon_rect = style.subElementRect(
+                QStyle.SubElement.SE_ItemViewItemDecoration,
+                opt,
+                opt.widget,
+            )
+            alignment = self._itemAlignment(index, opt.decorationAlignment)
+            icon_rect = QStyle.alignedRect(
+                opt.direction,
+                alignment,
+                icon_rect.size(),
+                opt.rect,
+            )
+            if not (opt.state & QStyle.StateFlag.State_Enabled):
+                mode = QIcon.Mode.Disabled
+            elif opt.state & QStyle.StateFlag.State_Selected:
+                mode = QIcon.Mode.Selected
+            else:
+                mode = QIcon.Mode.Normal
+            state = (
+                QIcon.State.On
+                if opt.state & QStyle.StateFlag.State_Open
+                else QIcon.State.Off
+            )
+            opt.icon.paint(painter, icon_rect, opt.decorationAlignment, mode, state)
+            return
+
+        super().paint(painter, option, index)
+
+    def editorEvent(
+        self,
+        event: QEvent,
+        model: QAbstractItemModel,
+        option: QStyleOptionViewItem,
+        index: QModelIndex | QPersistentModelIndex,
+    ) -> bool:
+        flags = model.flags(index)
+        if (
+            not (flags & Qt.ItemFlag.ItemIsUserCheckable)
+            or not (option.state & QStyle.StateFlag.State_Enabled)
+            or not (flags & Qt.ItemFlag.ItemIsEnabled)
+        ):
+            return False
+
+        check_state = self._checkState(index.data(Qt.ItemDataRole.CheckStateRole))
+        if check_state is None:
+            return False
+
+        if event.type() in (
+            QEvent.Type.MouseButtonPress,
+            QEvent.Type.MouseButtonRelease,
+            QEvent.Type.MouseButtonDblClick,
+        ):
+            if not isinstance(event, QMouseEvent):
+                return False
+            if event.button() != Qt.MouseButton.LeftButton:
+                return False
+            if not self._checkRect(option, index).contains(event.pos()):
+                return False
+            if event.type() in (
+                QEvent.Type.MouseButtonPress,
+                QEvent.Type.MouseButtonDblClick,
+            ):
+                return True
+        elif event.type() == QEvent.Type.KeyPress:
+            if not isinstance(event, QKeyEvent) or event.key() not in (
+                Qt.Key.Key_Space,
+                Qt.Key.Key_Select,
+            ):
+                return False
+        else:
+            return False
+
+        if flags & Qt.ItemFlag.ItemIsUserTristate:
+            new_state = Qt.CheckState((check_state.value + 1) % 3)
+        else:
+            new_state = (
+                Qt.CheckState.Unchecked
+                if check_state == Qt.CheckState.Checked
+                else Qt.CheckState.Checked
+            )
+        return model.setData(index, new_state, Qt.ItemDataRole.CheckStateRole)
 
 
 def noticeBox(title: str, content: str, parent: QObject) -> None:
