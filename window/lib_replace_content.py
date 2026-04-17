@@ -86,6 +86,7 @@ class LibReplaceContent(QWidget):
         self._compileTotal = 0
         self._compileDone = 0
         self._sshTask: SSHTask | None = None
+        self._batchUpdatingSelection = False
         self._setupUi()
         self._installRequireSettings()
         self._installStyleSheet()
@@ -149,6 +150,8 @@ class LibReplaceContent(QWidget):
 
         header = self.ui.fileTable.horizontalHeader()
         header.setMinimumSectionSize(0)
+        if isinstance(header, HorizontalHeaderView):
+            header.toggle.connect(self._onHeaderToggled)
 
         # self._forbidResizeColumns = [
         #     LibReplaceContent.SELECT_COLUMN_INDEX,
@@ -210,6 +213,7 @@ class LibReplaceContent(QWidget):
                 checked=entry.get("checked", True),
             )
 
+        self._syncHeaderCheckState()
         self._updateSelectionCount()
         self._activeModuleFilters = set(self._projectConfig.get("moduleFilters", []))
 
@@ -265,6 +269,51 @@ class LibReplaceContent(QWidget):
     def _onItemToggled(self) -> None:
         self._updateSelectionCount()
 
+    def _onHeaderToggled(self, checked: bool) -> None:
+        state = Qt.CheckState.Checked if checked else Qt.CheckState.Unchecked
+
+        self._batchUpdatingSelection = True
+        try:
+            for row in range(self._model.rowCount()):
+                item = self._model.item(row, LibReplaceContent.SELECT_COLUMN_INDEX)
+                if item is None:
+                    continue
+                if not (item.flags() & Qt.ItemFlag.ItemIsUserCheckable):
+                    continue
+                if item.checkState() == state:
+                    continue
+                item.setCheckState(state)
+        finally:
+            self._batchUpdatingSelection = False
+
+        self._syncHeaderCheckState()
+        self._updateSelectionCount()
+        self._saveProjectConfig()
+        self.ui.fileTable.viewport().update()
+
+    def _syncHeaderCheckState(self) -> None:
+        header = self.ui.fileTable.horizontalHeader()
+        if not isinstance(header, HorizontalHeaderView):
+            return
+
+        total = 0
+        checked = 0
+        for row in range(self._model.rowCount()):
+            item = self._model.item(row, LibReplaceContent.SELECT_COLUMN_INDEX)
+            if item is None:
+                continue
+            if not (item.flags() & Qt.ItemFlag.ItemIsUserCheckable):
+                continue
+            total += 1
+            if item.checkState() == Qt.CheckState.Checked:
+                checked += 1
+
+        header.headerChecked = total > 0 and checked == total
+        try:
+            header.updateSection(LibReplaceContent.SELECT_COLUMN_INDEX)
+        except Exception:
+            header.update()
+
     def _onModelItemChanged(self, item: QStandardItem) -> None:
         # React to changes in the source model: selection or module edits
         try:
@@ -272,6 +321,9 @@ class LibReplaceContent(QWidget):
         except Exception:
             return
         if col == LibReplaceContent.SELECT_COLUMN_INDEX:
+            if self._batchUpdatingSelection:
+                return
+            self._syncHeaderCheckState()
             self._updateSelectionCount()
             self._saveProjectConfig()
         elif col == LibReplaceContent.MODULE_COLUMN_INDEX:
@@ -283,6 +335,7 @@ class LibReplaceContent(QWidget):
         if row >= 0:
             self._model.removeRow(row)
         self._deleteButtons.pop(filepath, None)
+        self._syncHeaderCheckState()
 
         self._compileQueue = [p for p in self._compileQueue if p != filepath]
         QTimer.singleShot(0, self._saveProjectConfig)
