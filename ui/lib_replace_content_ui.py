@@ -137,52 +137,8 @@ class Ui_LibReplaceContent(object):
             0, CenteredCheckDelegate(self.fileTable)
         )
 
-        self._headerWidgets: dict[int, QWidget] = {}
-        header.sectionResized.connect(self._repositionAllHeaderWidgets)
-        header.geometriesChanged.connect(self._repositionAllHeaderWidgets)
-
         self.fileTableFrameLayout.addWidget(self.fileTable)
         self.LibReplaceContentLayout.addWidget(self.fileTableFrame, stretch=1)
-
-    # ------------------------------------------------------------------ #
-    #  Public header-widget API                                            #
-    # ------------------------------------------------------------------ #
-
-    def setHeaderWidget(self, col: int, widget: QWidget) -> None:
-        """Place any widget centered inside the header of the given column."""
-        header = self.fileTable.horizontalHeader()
-        old = self._headerWidgets.get(col)
-        if old is not None and old is not widget:
-            old.deleteLater()
-        widget.setParent(header)
-        self._headerWidgets[col] = widget
-        self._repositionHeaderWidget(col)
-        widget.show()
-
-    # ------------------------------------------------------------------ #
-    #  Internal repositioning                                              #
-    # ------------------------------------------------------------------ #
-
-    def _repositionHeaderWidget(self, col: int) -> None:
-        widget = self._headerWidgets.get(col)
-        if widget is None:
-            return
-        header = self.fileTable.horizontalHeader()
-        # use header.sectionPosition to get the x offset of the column
-        try:
-            x_offset = header.sectionPosition(col)
-        except Exception:
-            x_offset = sum(header.sectionSize(i) for i in range(col))
-        col_w = header.sectionSize(col)
-        h = header.height()
-        size = widget.size()
-        x = x_offset + (col_w - size.width()) // 2
-        y = (h - size.height()) // 2
-        widget.move(x, y)
-
-    def _repositionAllHeaderWidgets(self) -> None:
-        for col in self._headerWidgets:
-            self._repositionHeaderWidget(col)
 
     def _buildSeparator_2(self, parent: QWidget | None) -> None:
         self.fileBottomLine = QFrame(parent)

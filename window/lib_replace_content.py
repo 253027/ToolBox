@@ -2,7 +2,7 @@
 import os
 from pathlib import Path
 
-from PySide6.QtCore import QDateTime, Qt, QTimer, QSortFilterProxyModel, Signal
+from PySide6.QtCore import QDateTime, Qt, QTimer, Signal
 from PySide6.QtGui import (
     QColor,
     QResizeEvent,
@@ -41,26 +41,6 @@ _SOURCE_EXTS = {".js", ".ts", ".py", ".c", ".cpp", ".h", ".java", ".go", ".rs"}
 def _fileIcon(filename: str):
     ext = "." + filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
     return FluentIcon.CODE if ext in _SOURCE_EXTS else FluentIcon.DOCUMENT
-
-
-class ModuleFilterProxyModel(QSortFilterProxyModel):
-    """Proxy model that filters rows by module name set."""
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.active_modules: set[str] = set()
-        self.module_column = LibReplaceContent.MODULE_COLUMN_INDEX
-
-    def setActiveModules(self, modules: set[str]) -> None:
-        self.active_modules = set(modules)
-        self.invalidateFilter()
-
-    def filterAcceptsRow(self, source_row, source_parent) -> bool:
-        if not self.active_modules:
-            return True
-        idx = self.sourceModel().index(source_row, self.module_column, source_parent)
-        module = self.sourceModel().data(idx, Qt.ItemDataRole.DisplayRole) or ""
-        return module in self.active_modules
 
 
 class LibReplaceContent(QWidget):
@@ -130,10 +110,7 @@ class LibReplaceContent(QWidget):
         )
         self._model.itemChanged.connect(self._onModelItemChanged)
 
-        self._proxy = ModuleFilterProxyModel(self)
-        self._proxy.setSourceModel(self._model)
-
-        self.ui.fileTable.setModel(self._proxy)
+        self.ui.fileTable.setModel(self._model)
         self.ui.fileTable.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
@@ -158,7 +135,6 @@ class LibReplaceContent(QWidget):
         #     LibReplaceContent.STATUS_COLUMN_INDEX,
         #     LibReplaceContent.ACTION_COLUMN_INDEX,
         # ]
-        self._activeModuleFilters: set[str] = set()
         self._deleteButtons: dict[str, TransparentToolButton] = {}
 
     def onBreadIndexChanged(self, index: int) -> None:
@@ -183,6 +159,7 @@ class LibReplaceContent(QWidget):
         self._projectPath = Path(path)
         self._projectConfig = config
         self._compileQueue.clear()
+
         self._clearItems()
         self._showEmptyState(False)
 
@@ -215,7 +192,6 @@ class LibReplaceContent(QWidget):
 
         self._syncHeaderCheckState()
         self._updateSelectionCount()
-        self._activeModuleFilters = set(self._projectConfig.get("moduleFilters", []))
 
     def _onBrowseClicked(self) -> None:
         path, _ = QFileDialog.getOpenFileName(self, "选择文件", "", "所有文件 (*)")
@@ -326,9 +302,6 @@ class LibReplaceContent(QWidget):
             self._syncHeaderCheckState()
             self._updateSelectionCount()
             self._saveProjectConfig()
-        elif col == LibReplaceContent.MODULE_COLUMN_INDEX:
-            # module changed -> module filter UI disabled, skip view update
-            pass
 
     def _onItemDeleted(self, filepath: str) -> None:
         row = self._findRowByPath(filepath)
@@ -518,65 +491,8 @@ class LibReplaceContent(QWidget):
         if row >= 0:
             self._setRowStatus(row, status)
 
-    # ----------------- Module filter (QComboBox + proxy) ----------------- #
-    def _rebuildModuleCombo(self) -> None:
-        """Rebuild the combobox model with current modules (checkable items)."""
-        model = getattr(self, "_moduleComboModel", None)
-        if model is None:
-            self._moduleComboModel = QStandardItemModel(self)
-            model = self._moduleComboModel
-        model.blockSignals(True)
-        model.clear()
-        modules = set()
-        # gather from source model
-        for src_row in range(self._model.rowCount()):
-            item = self._model.item(src_row, LibReplaceContent.FILENAME_COLUMN_INDEX)
-            m = str(item.text()).strip() if item else ""
-            if m:
-                modules.add(m)
-        modules = sorted(modules)
-        if not modules:
-            it = QStandardItem("无模块")
-            it.setEnabled(False)
-            model.appendRow(it)
-            return
-        # add select/clear pseudo-actions as items
-        # add module items
-        for mod in modules:
-            it = QStandardItem(mod)
-            it.setFlags(it.flags() | Qt.ItemFlag.ItemIsUserCheckable)
-            it.setCheckState(
-                Qt.CheckState.Checked
-                if mod in self._activeModuleFilters
-                else Qt.CheckState.Unchecked
-            )
-            model.appendRow(it)
-        model.blockSignals(False)
-        self._proxy.setActiveModules(self._activeModuleFilters)
-        self._rebuildIndexWidgets()
-
-    def _onModuleComboItemChanged(self, item: QStandardItem) -> None:
-        # called when user toggles a module checkbox in combobox's model
-        mod = str(item.text())
-        checked = item.checkState() == Qt.CheckState.Checked
-        if checked:
-            self._activeModuleFilters.add(mod)
-        else:
-            self._activeModuleFilters.discard(mod)
-        self._proxy.setActiveModules(self._activeModuleFilters)
-        QTimer.singleShot(0, self._saveProjectConfig)
-
-    def _applyModuleFilter(self) -> None:
-        # backward-compat helper: apply active filters to proxy
-        self._proxy.setActiveModules(self._activeModuleFilters)
-        try:
-            self._rebuildIndexWidgets()
-        except Exception:
-            pass
-        self._updateSelectionCount()
-
     def _rebuildIndexWidgets(self) -> None:
-        """Attach per-row widgets (delete buttons) to the view using proxy mapping."""
+        """Attach per-row widgets (delete buttons) to the view."""
         for src_row in range(self._model.rowCount()):
             name_item = self._model.item(
                 src_row, LibReplaceContent.FILENAME_COLUMN_INDEX
@@ -590,8 +506,7 @@ class LibReplaceContent(QWidget):
             src_index = self._model.index(
                 src_row, LibReplaceContent.ACTION_COLUMN_INDEX
             )
-            proxy_index = self._proxy.mapFromSource(src_index)
-            if proxy_index.isValid():
+            if src_index.isValid():
                 # create a container widget with centered layout so the button is centered
                 container = QWidget(self.ui.fileTable)
                 layout = QHBoxLayout(container)
@@ -600,8 +515,8 @@ class LibReplaceContent(QWidget):
                 # reparent button into container and add to layout
                 btn.setParent(container)
                 layout.addWidget(btn)
-                self.ui.fileTable.setIndexWidget(proxy_index, container)
-                self.ui.fileTable.setRowHeight(proxy_index.row(), 40)
+                self.ui.fileTable.setIndexWidget(src_index, container)
+                self.ui.fileTable.setRowHeight(src_row, 40)
 
     def _findRowByPath(self, filepath: str) -> int:
         for src_row in range(self._model.rowCount()):
@@ -614,19 +529,13 @@ class LibReplaceContent(QWidget):
 
     def _checkedFilepaths(self) -> list[str]:
         result: list[str] = []
-        # iterate over visible rows in proxy
-        for proxy_row in range(self._proxy.rowCount()):
-            proxy_index = self._proxy.index(
-                proxy_row, LibReplaceContent.SELECT_COLUMN_INDEX
-            )
-            src_index = self._proxy.mapToSource(proxy_index)
-            src_row = src_index.row()
-            item = self._model.item(src_row, LibReplaceContent.SELECT_COLUMN_INDEX)
+        for row in range(self._model.rowCount()):
+            item = self._model.item(row, LibReplaceContent.SELECT_COLUMN_INDEX)
             if item is None:
                 continue
             if item.checkState() != Qt.CheckState.Checked:
                 continue
-            fp_item = self._model.item(src_row, LibReplaceContent.FILENAME_COLUMN_INDEX)
+            fp_item = self._model.item(row, LibReplaceContent.FILENAME_COLUMN_INDEX)
             if fp_item is None:
                 continue
             filepath = str(fp_item.data(Qt.ItemDataRole.UserRole) or "")
@@ -682,7 +591,7 @@ class LibReplaceContent(QWidget):
         self.ui.executeButton.setEnabled(False)
 
     def _updateSelectionCount(self) -> None:
-        total = self._proxy.rowCount()
+        total = self._model.rowCount()
         checked = len(self._checkedFilepaths())
 
         if total:
@@ -717,7 +626,6 @@ class LibReplaceContent(QWidget):
         configPath = self._projectPath / "config.json"
         bakPath = self._projectPath / "config.json.bak"
         self._projectConfig["file"] = self._allItems()
-        self._projectConfig["moduleFilters"] = list(self._activeModuleFilters)
         self._projectConfig["update_time"] = (
             QDateTime().currentDateTime().toString("yyyy-MM-dd HH:mm:ss")
         )
